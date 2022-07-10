@@ -14,6 +14,8 @@
 
     <v-divider />
     <v-data-table
+      :loading="isLoading"
+      loading-text="Loading... Please wait"
       dense
       :headers="headers"
       :items="sites"
@@ -156,6 +158,7 @@
                           outlined
                           type="number"
                           label="Start"
+                          oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
                       <v-col
@@ -168,6 +171,7 @@
                           outlined
                           type="number"
                           label="End"
+                          oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
                       <v-col
@@ -180,6 +184,7 @@
                           outlined
                           type="number"
                           label="Page Limit"
+                          oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
                     </v-row>
@@ -322,6 +327,7 @@ export default {
     ],
     sites: [],
     tags: [],
+    isLoading: false,
     isValid: false,
     isSaving: false,
     nameRules: [
@@ -423,8 +429,10 @@ export default {
     },
 
     fetchData(queryParams) {
+      this.isLoading = true;
       this.$http.get(`/sites?${queryParams}`)
         .then(response => {
+          this.isLoading = false;
           this.sites = response.data.list
         })
     },
@@ -496,6 +504,7 @@ export default {
         delete item['tags'];
         this.$http.patch(`/sites/${this.editedItem.id}`, item)
           .then(response => {
+            this.isSaving = false;
             const id = response.data
             if (id === 0) {
               this.close()

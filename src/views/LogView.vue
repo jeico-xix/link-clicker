@@ -12,6 +12,8 @@
     />
 
     <v-data-table
+      :loading="loading"
+      loading-text="Loading... Please wait"
       dense
       :headers="headers"
       :items="logs"
@@ -29,7 +31,7 @@
         <v-chip
           small
           class="ma-2"
-          :class="[item.status === 'success' ? 'green' : 'red']"
+          :class="[getStatusClass(item.status)]"
           text-color="white"
         >
           {{ item.status.toUpperCase() }}
@@ -61,6 +63,7 @@ export default {
     //     'text': 'Deleted'
     //   }
     // ],
+    loading: false,
     headers: [
       { text: '#', value: 'number' },
       { text: 'Site Name', value: 'sites.name' },
@@ -113,8 +116,8 @@ export default {
 
   mounted() {
     const socket = this.$io.connect('http://10.0.10.11:4003/logs', { transports: ['websocket', 'polling'] })
-    socket.on('insert', log => {
-      this.logs.unshift(JSON.parse(log))
+    socket.on('insert', () => {
+      this.fetchData()
     })
 
     this.query.filterBy = this.$route.query.page;
@@ -123,9 +126,23 @@ export default {
   },
 
   methods: {
+    getStatusClass(status) {
+      if (status === 'on-going') {
+        return 'warning'
+      }
+
+      if (status === 'success') {
+        return 'green'
+      }
+
+      return 'red'
+    },
+
     fetchData(queryParams) {
+      this.loading = true;
       this.$http.get(`/logs?${queryParams}`)
         .then(response => {
+          this.loading = false;
           this.logs = response.data.list
         })
     },
