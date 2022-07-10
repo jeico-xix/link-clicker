@@ -6,7 +6,7 @@
       class="mr-2"
     >
       <v-btn
-        @click="refresh"
+        @click="$emit('refresh')"
       >
         <v-icon>mdi-cached</v-icon>
       </v-btn>
@@ -31,7 +31,8 @@
             v-for="item in filterByColumns"
             :key="item.value"
             link
-            @click="selectFilterBy(item)"
+            :value="item"
+            @click="$emit('update:filter-by', item)"
           >
             <v-list-item-title v-text="item.text" />
           </v-list-item>
@@ -41,16 +42,7 @@
     <div
       class="mr-2" 
     >
-      <v-text-field
-        v-model="query"
-        hide-details
-        x-small
-        outlined
-        label="Search"
-        dense
-        single-line 
-        class="shrink"
-      />
+      <slot name="search"></slot>
     </div>
     <div 
       class="mr-2" 
@@ -63,7 +55,7 @@
             v-bind="attrs"
             v-on="on"
           >
-            {{ dateBy.text }}
+            <!-- {{ dateBy.text }} -->
           </v-btn>
         </template>
 
@@ -72,14 +64,13 @@
             v-for="item in dateByColumns"
             :key="item.value"
             link
-            @click="selectDateBy(item)"
           >
             <v-list-item-title v-text="item.text" />
           </v-list-item>
         </v-list>
       </v-menu>
     </div>
-    <div
+    <!-- <div
       class="mr-2"
     >
       <v-menu
@@ -117,8 +108,8 @@
           </v-btn>
         </div>
       </v-menu>
-    </div>
-    <div
+    </div> -->
+    <!-- <div
       class="mr-2"
     >
       <v-menu
@@ -165,12 +156,12 @@
           </v-card-actions>
         </v-card>
       </v-menu>
-    </div>
+    </div> -->
     <v-btn
       icon
       class="mr-2" 
       color="success"
-      @click="search"
+      @click="$emit('search')"
     >
       <v-icon>mdi-magnify</v-icon>
     </v-btn>
@@ -178,7 +169,7 @@
       icon
       class="mr-2"
       color="error"
-      @click="reset"
+      @click="$emit('clear')"
     >
       <v-icon>mdi-close</v-icon>
     </v-btn>
@@ -188,60 +179,32 @@
 <script>
 export default {
   props: {
+    filterBy: Object,
     filterByColumns: Array,
     dateByColumns: Array
   },
+  emits: ['update:filter-by', 'update:status'],
 
   data() {
     return {
-      dateFromDatePicker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
-      dateFromTimePicker: '11:15',
-      filterBy: {
-        text: 'Filter By',
-        value: ''
-      },
-      dateBy: {
-        text: 'Date By',
-        value: ''
-      },
-      query: ''
+      // dateFromDatePicker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      // dateFromTimePicker: '11:15',
+      // selectedFilterBy: {
+      //   text: 'Filter By',
+      //   value: ''
+      // }
+      // dateBy: {
+      //   text: 'Date By',
+      //   value: ''
+      // },
+      // query: ''
     }
   },
   
   watch: {
-    dateFromDatePicker(val) {
-      console.log(val)
-    }
-  },
-
-  methods: {
-    refresh() {
-      this.$emit('refresh')
-    },
-
-    selectFilterBy(item) {
-      this.filter = item
-    },
-
-    selectDateBy(item) {
-      console.log(item)
-    },
-
-    search() {
-      this.$emit('search', {
-        filterBy: this.filterBy.value,
-        query: this.query
-      })
-    },
-
-    reset() {
-      this.query = ''
-      this.filter = {
-        text: 'Filter By',
-        value: ''
-      }
-      this.$emit('reset')
-    }
+    // dateFromDatePicker(val) {
+    //   // this.selectedFilterBy = val
+    // }
   }
 }
 </script>

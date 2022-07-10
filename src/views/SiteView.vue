@@ -7,10 +7,25 @@
     <base-toolbar
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
+      :filter-by="filterBy"
+      @update:filter-by="updateFilterBy"
       @refresh="fetchData"
       @search="search"
-      @reset="reset"
-    />
+      @clear="clear"
+    >
+      <template #search>
+        <v-text-field
+          v-model="query"
+          hide-details
+          x-small
+          outlined
+          label="Search"
+          dense
+          single-line
+          class="shrink"
+        />
+      </template>
+    </base-toolbar>
 
     <v-divider />
     <v-data-table
@@ -24,8 +39,6 @@
       <template #top>
         <v-toolbar flat>
           <v-toolbar-title>Sites</v-toolbar-title>
-          <!-- <v-text-field v-model="search" label="Search" class="mx-4"></v-text-field> -->
-          <!-- <v-divider class="mx-4" inset vertical></v-divider> -->
           <v-spacer />
           <v-dialog 
             v-model="tagsDialog" 
@@ -292,6 +305,7 @@
 
 <script>
 // import BaseTab from '../components/BaseTab'
+import _ from 'lodash'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
@@ -380,7 +394,15 @@ export default {
         text: 'Created At',
         value: 'created_at'
       }
-    ]
+    ],
+    filterBy: {
+      text: 'Filter By',
+      value: ''
+    },
+    query: '',
+    itemsPerPage: 5,
+    currentPage: 1,
+    currentNumber: 1
   }),
 
   computed: {
@@ -407,7 +429,21 @@ export default {
     }
   },
 
+  created() {
+    if (this.$route.query.q) {
+      this.query = this.$route.query.q
+    }
+
+    this.filterByColumns.forEach(filterBy => {
+      if (this.$route.query.filter_by && this.$route.query.filter_by === filterBy.value) {
+        this.filterBy = filterBy
+      }
+    });
+  },
+
   mounted() {
+    this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
+
     this.fetchData()
     this.tagsLimit = 3;
     this.isValid = false
@@ -428,7 +464,14 @@ export default {
       this.tagsDialog = false
     },
 
-    fetchData(queryParams) {
+    fetchData() {
+      const params = [
+        `${(this.$route.query.filter_by) ? `filter_by=${this.$route.query.filter_by}` : ''}`,
+        `q=${this.$route.query.q}`
+      ]
+
+      const queryParams = params.join('&');
+
       this.isLoading = true;
       this.$http.get(`/sites?${queryParams}`)
         .then(response => {
@@ -437,18 +480,34 @@ export default {
         })
     },
 
-    search(data) {
-      const params = [
-        `filter_by=${data.filterBy}`,
-        `q=${data.query}`
-      ]
+    updateFilterBy(filter) {
+      this.status = {
+        text:'All',
+        value: ''
+      }
+      this.query = ''
 
-      const queryParams = params.join('&')
-      console.log(queryParams)
-      this.fetchData(queryParams)
+      this.filterBy = filter
     },
 
-    reset() {
+    search() {
+      const query = {}
+      if (this.filterBy.value !== '') {
+        query.filter_by = this.filterBy.value
+      }
+
+      query.q = this.query
+
+      if (!_.isEqual(this.$route.query, query)) {
+        this.$router.push({ 
+          query: query 
+        })
+      }
+
+      this.fetchData()
+    },
+
+    clear() {
       this.fetchData()
     },
 

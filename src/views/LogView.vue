@@ -6,18 +6,60 @@
     <base-toolbar
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
+      :filter-by="filterBy"
+      @update:filter-by="updateFilterBy"
       @refresh="fetchData"
       @search="search"
-      @reset="reset"
-    />
+      @clear="clear"
+    >
+      <template #search>
+        <v-text-field
+          v-if="filterBy.value !== 'status'"
+          v-model="query"
+          hide-details
+          x-small
+          outlined
+          label="Search"
+          dense
+          single-line
+          class="shrink"
+        />
+        <v-menu 
+          v-else
+          offset-y
+        >
+          <template #activator="{ attrs, on }">
+            <v-btn
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ status.text }}
+            </v-btn>
+          </template>
+
+          <v-list>
+            <v-list-item
+              v-for="item in statuses"
+              :key="item.value"
+              link
+              :value="item"
+              @click="updateStatus(item)"
+            >
+              <v-list-item-title v-text="item.text" />
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+    </base-toolbar>
 
     <v-data-table
-      :loading="loading"
-      loading-text="Loading... Please wait"
       dense
       :headers="headers"
       :items="logs"
       class="elevation-1"
+      :items-per-page="itemsPerPage"
+      @update:page="updatePage"
+      @update:items-per-page="updateItemsPerPage"
     >
       <template #top>
         <v-toolbar flat>
@@ -25,7 +67,7 @@
         </v-toolbar>
       </template>
       <template #[`item.number`]="{ index }">
-        {{ index + 1 }}
+        {{ currentNumber + (index + 1) }}
       </template>
       <template #[`item.status`]="{ item }">
         <v-chip
@@ -43,6 +85,7 @@
 
 <script>
 // import BaseTab from '../components/BaseTab'
+import _ from 'lodash'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
@@ -63,7 +106,6 @@ export default {
     //     'text': 'Deleted'
     //   }
     // ],
-    loading: false,
     headers: [
       { text: '#', value: 'number' },
       { text: 'Site Name', value: 'sites.name' },
@@ -94,6 +136,28 @@ export default {
         value: 'page'
       }
     ],
+    statuses: [
+      {
+        text: 'All',
+        value: ''
+      },
+      {
+        text: 'On-Going',
+        value: 'on-going'
+      },
+      {
+        text: 'Success',
+        value: 'success'
+      }
+      ,      {
+        text: 'Failed',
+        value: 'failed'
+      }
+    ],
+    status: {      
+      text: 'All',
+      value: ''
+    },
     dateByColumns: [
       {
         text: 'Started At',
@@ -108,20 +172,47 @@ export default {
         value: 'created_at'
       }
     ],
-    query: {
-      filter_by: '',
-      q: ''
-    }
+    filterBy: {
+      text: 'Filter By',
+      value: ''
+    },
+    query: '',
+    itemsPerPage: 5,
+    currentPage: 1,
+    currentNumber: 1
   }),
 
+  created() {
+    if (this.$route.query.q) {
+      this.query = this.$route.query.q
+    }
+
+    this.filterByColumns.forEach(filterBy => {
+      if (this.$route.query.filter_by && this.$route.query.filter_by === filterBy.value) {
+        this.filterBy = filterBy
+
+        if (this.filterBy.value === 'status') {
+          this.statuses.forEach(status => {
+            if (this.$route.query.q === status.value) {
+              this.status = status
+            }
+          });
+        }
+      }
+    });
+  },
+
   mounted() {
-    const socket = this.$io.connect('http://10.0.10.11:4003/logs', { transports: ['websocket', 'polling'] })
-    socket.on('insert', () => {
-      this.fetchData()
+    this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
+
+    const socket = this.$io.connect('http://10.0.10.11:4003/logs', { 
+      transports: ['websocket', 'polling'] 
     })
 
-    this.query.filterBy = this.$route.query.page;
-    this.query.q = this.$route.query.page;
+    socket.on('insert', log => {
+      this.logs.unshift(JSON.parse(log))
+    })
+
     this.fetchData()
   },
 
@@ -138,38 +229,73 @@ export default {
       return 'red'
     },
 
-    fetchData(queryParams) {
-      this.loading = true;
+    updateFilterBy(filter) {
+      this.status = {
+        text:'All',
+        value: ''
+      }
+      this.query = ''
+
+      this.filterBy = filter
+    },
+
+    updateStatus(status) {
+      this.status = status
+      this.query = status.value
+    },
+
+    updatePage(page) {
+      this.currentPage = page
+      this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
+    },
+
+    updateItemsPerPage(number) {
+      this.itemsPerPage = number
+    },
+
+    fetchData() {
+      const params = [
+        `${(this.$route.query.filter_by) ? `filter_by=${this.$route.query.filter_by}` : ''}`,
+        `q=${this.$route.query.q}`
+      ]
+
+      const queryParams = params.join('&');
+
       this.$http.get(`/logs?${queryParams}`)
         .then(response => {
-          this.loading = false;
           this.logs = response.data.list
         })
     },
 
-    search(data) {
-      this.$router.replace({ 
-        query: {
-          filter_by: data.filterBy,
-          q: data.query
-        }
-      })
+    search() {
+      const query = {}
+      if (this.filterBy.value !== '') {
+        query.filter_by = this.filterBy.value
+      }
 
-      const params = [
-        `filter_by=${data.filterBy}`,
-        `q=${data.query}`
-      ]
+      query.q = this.query
 
-      const queryParams = params.join('&')
-      console.log(queryParams)
-      this.fetchData(queryParams)
+      if (!_.isEqual(this.$route.query, query)) {
+        this.$router.push({ 
+          query: query 
+        })
+      }
+
+      this.fetchData()
     },
 
-    reset() {
-      this.$router.replace({ 
-        query: {}
-      })
-      
+    clear() {
+      if (!_.isEqual(this.$route.query, {})) {
+        this.$router.push({ query: {} })
+      }
+
+      this.filterBy = {
+        text: 'Filter By',
+        value: ''
+      }
+
+      this.query = ''
+
       this.fetchData()
     }
   }
