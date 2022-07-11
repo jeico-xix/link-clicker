@@ -8,7 +8,13 @@
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
       :filter-by="filterBy"
+      :date-by="dateBy"
+      :date-time-from="dateTimeFrom"
+      :date-time-to="dateTimeTo"
       @update:filter-by="updateFilterBy"
+      @update:date-by="updateDateBy"
+      @update:date-time-from="updateDateTimeFrom"
+      @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
       @search="search"
       @clear="clear"
@@ -399,7 +405,19 @@ export default {
       text: 'Filter By',
       value: ''
     },
+    dateBy: {
+      text: 'Date By',
+      value: ''
+    },
     query: '',
+    dateTimeFrom: {
+      text: 'Date From',
+      value: ''
+    },
+    dateTimeTo: {
+      text: 'Date To',
+      value: ''
+    },
     itemsPerPage: 5,
     currentPage: 1,
     currentNumber: 1
@@ -488,6 +506,26 @@ export default {
       this.query = ''
 
       this.filterBy = filter
+    },
+
+    updateDateBy(dateBy) {
+      this.dateBy = dateBy;
+    },
+
+    updateDateTimeFrom(date, time) {
+      const dateTime = `${date} ${time}` 
+      this.dateTimeFrom = {
+        text: dateTime,
+        value: `${dateTime}:00`
+      }
+    },
+
+    updateDateTimeTo(date, time) {
+      const dateTime = `${date} ${time}` 
+      this.dateTimeTo = {
+        text: dateTime,
+        value: `${dateTime}:00`
+      }
     },
 
     search() {

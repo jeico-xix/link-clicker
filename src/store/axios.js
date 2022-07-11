@@ -1,13 +1,5 @@
-import Vue from 'vue'
-import App from './App.vue'
-import store from './store'
-import router from './router'
-import vuetify from './plugins/vuetify'
 import Axios from 'axios'
-import io from 'socket.io-client'
-import _ from 'lodash'
 
-Vue.prototype.$io = io
 Axios.defaults.baseURL = 'http://127.0.0.1:4002';
 const token = localStorage.getItem('token')
 Axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
@@ -26,20 +18,11 @@ Axios.interceptors.response.use(function (response) {
     localStorage.clear();
     localStorage.setItem(key, isDarkMode);
 
-    if (!_.isEqual(router)) {
-      router.replace('/login');
-    }
+    // if (!_.isEqual(router)) {
+    //   router.replace('/login');
+    // }
   }
   return Promise.reject(error);
 });
 
-Vue.prototype.$http = Axios;
-
-Vue.config.productionTip = false;
-
-new Vue({
-  store,
-  router,
-  vuetify,
-  render: h => h(App)
-}).$mount('#app')
+export default Axios

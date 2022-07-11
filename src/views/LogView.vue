@@ -7,7 +7,13 @@
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
       :filter-by="filterBy"
+      :date-by="dateBy"
+      :date-time-from="dateTimeFrom"
+      :date-time-to="dateTimeTo"
       @update:filter-by="updateFilterBy"
+      @update:date-by="updateDateBy"
+      @update:date-time-from="updateDateTimeFrom"
+      @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
       @search="search"
       @clear="clear"
@@ -31,9 +37,16 @@
           <template #activator="{ attrs, on }">
             <v-btn
               v-bind="attrs"
+              small
               v-on="on"
             >
               {{ status.text }}
+              <v-icon
+                x-small
+                right
+              >
+                mdi-chevron-down
+              </v-icon>
             </v-btn>
           </template>
 
@@ -130,10 +143,6 @@ export default {
       {
         text: 'Status',
         value: 'status'
-      },
-      {
-        text: 'Page',
-        value: 'page'
       }
     ],
     statuses: [
@@ -176,8 +185,20 @@ export default {
       text: 'Filter By',
       value: ''
     },
+    dateBy: {
+      text: 'Date By',
+      value: ''
+    },
     query: '',
-    itemsPerPage: 5,
+    dateTimeFrom: {
+      text: 'Date From',
+      value: ''
+    },
+    dateTimeTo: {
+      text: 'Date To',
+      value: ''
+    },
+    itemsPerPage: 15,
     currentPage: 1,
     currentNumber: 1
   }),
@@ -200,6 +221,28 @@ export default {
         }
       }
     });
+
+    this.dateByColumns.forEach(dateBy => {
+      if (this.$route.query.date_by && this.$route.query.date_by === dateBy.value) {
+        this.dateBy = dateBy
+      }
+    });
+
+    if (this.$route.query.date_from) {
+      const dateTimeFrom = this.$route.query.date_from
+      this.dateTimeFrom = {
+        text: dateTimeFrom,
+        value: dateTimeFrom
+      }
+    }
+
+    if (this.$route.query.date_to) {
+      const dateTimeTo = this.$route.query.date_to
+      this.dateTimeTo = {
+        text: dateTimeTo,
+        value: dateTimeTo
+      }
+    }
   },
 
   mounted() {
@@ -239,9 +282,29 @@ export default {
       this.filterBy = filter
     },
 
+    updateDateBy(dateBy) {
+      this.dateBy = dateBy;
+    },
+
     updateStatus(status) {
       this.status = status
       this.query = status.value
+    },
+
+    updateDateTimeFrom(date, time) {
+      const dateTime = `${date} ${time}` 
+      this.dateTimeFrom = {
+        text: dateTime,
+        value: `${dateTime}:00`
+      }
+    },
+
+    updateDateTimeTo(date, time) {
+      const dateTime = `${date} ${time}` 
+      this.dateTimeTo = {
+        text: dateTime,
+        value: `${dateTime}:00`
+      }
     },
 
     updatePage(page) {
@@ -256,7 +319,10 @@ export default {
     fetchData() {
       const params = [
         `${(this.$route.query.filter_by) ? `filter_by=${this.$route.query.filter_by}` : ''}`,
-        `q=${this.$route.query.q}`
+        `q=${this.$route.query.q}`,
+        `${(this.$route.query.date_by) ? `date_by=${this.$route.query.date_by}` : ''}`,
+        `${(this.$route.query.date_from) ? `date_from=${this.$route.query.date_from}` : ''}`,
+        `${(this.$route.query.date_to) ? `date_to=${this.$route.query.date_to}` : ''}`
       ]
 
       const queryParams = params.join('&');
@@ -275,6 +341,18 @@ export default {
 
       query.q = this.query
 
+      if (this.dateBy.value !== '') {
+        query.date_by = this.dateBy.value
+      }
+
+      if (this.dateTimeFrom.value !== '') {
+        query.date_from = this.dateTimeFrom.value
+      }
+
+      if (this.dateTimeTo.value !== '') {
+        query.date_to = this.dateTimeTo.value
+      }
+
       if (!_.isEqual(this.$route.query, query)) {
         this.$router.push({ 
           query: query 
@@ -291,6 +369,16 @@ export default {
 
       this.filterBy = {
         text: 'Filter By',
+        value: ''
+      }
+
+      this.dateBy = {
+        text: 'Date By',
+        value: ''
+      }
+
+      this.dateTimeFrom = {
+        text: 'Date From',
         value: ''
       }
 

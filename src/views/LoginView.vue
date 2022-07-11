@@ -108,10 +108,14 @@ export default {
 
   mounted() {
     this.isValid = false
-    this.is_logged_in = Boolean(localStorage.getItem('is_logged_in'));
-    if (this.is_logged_in) {
-      this.$router.push('/sites');
+    const isLoggedIn = Boolean(localStorage.getItem('is_logged_in'));
+
+    if (!isLoggedIn) {
+      this.$emit('logout')
+      return
     }
+
+    this.$router.push('/sites');
   },
 
   methods: {

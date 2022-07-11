@@ -11,6 +11,7 @@
         :errors="errors"
         :loading="loading"
         @login="login"
+        @logout="is_logged_in = false"
       />
     </v-main>
   </v-app>
