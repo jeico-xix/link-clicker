@@ -10,6 +10,7 @@
       :date-by="dateBy"
       :date-time-from="dateTimeFrom"
       :date-time-to="dateTimeTo"
+      @update:filters="updateFilters"
       @update:filter-by="updateFilterBy"
       @update:date-by="updateDateBy"
       @update:date-time-from="updateDateTimeFrom"
@@ -21,7 +22,6 @@
       <template #search>
         <v-text-field
           v-if="filterBy.value !== 'status'"
-          v-model="query"
           hide-details
           x-small
           outlined
@@ -30,6 +30,7 @@
           single-line
           class="shrink"
         />
+
         <v-menu 
           v-else
           offset-y
@@ -56,7 +57,6 @@
               :key="item.value"
               link
               :value="item"
-              @click="updateStatus(item)"
             >
               <v-list-item-title v-text="item.text" />
             </v-list-item>
@@ -89,7 +89,7 @@
           :class="[getStatusClass(item.status)]"
           text-color="white"
         >
-          {{ item.status.toUpperCase() }}
+          {{ (item.status) ? item.status.toUpperCase() : item.status }}
         </v-chip>
       </template>
     </v-data-table>
@@ -124,6 +124,7 @@ export default {
       { text: 'Site Name', value: 'sites.name' },
       { text: 'Tag', value: 'tags.name' },
       { text: 'Status', value: 'status' },
+      { text: 'IP', value: 'ip' },
       { text: 'Page', value: 'page' },
       { text: 'Started At', value: 'started_at' },
       { text: 'Finished At', value: 'finished_at' },
@@ -139,6 +140,10 @@ export default {
       {
         text: 'Tag Name',
         value: 'tag_name'
+      },
+      {
+        text: 'Status',
+        value: 'status'
       },
       {
         text: 'Status',
@@ -200,60 +205,63 @@ export default {
     },
     itemsPerPage: 15,
     currentPage: 1,
-    currentNumber: 1
+    currentNumber: 1,
+    filters: []
   }),
 
   created() {
-    if (this.$route.query.q) {
-      this.query = this.$route.query.q
-    }
+    const query = this.$route.query
+    console.log(query)
+    // if (this.$route.query.q) {
+    //   this.query = this.$route.query.q
+    // }
 
-    this.filterByColumns.forEach(filterBy => {
-      if (this.$route.query.filter_by && this.$route.query.filter_by === filterBy.value) {
-        this.filterBy = filterBy
+    // this.filterByColumns.forEach(filterBy => {
+    //   if (this.$route.query.filter_by && this.$route.query.filter_by === filterBy.value) {
+    //     this.filterBy = filterBy
 
-        if (this.filterBy.value === 'status') {
-          this.statuses.forEach(status => {
-            if (this.$route.query.q === status.value) {
-              this.status = status
-            }
-          });
-        }
-      }
-    });
+    //     if (this.filterBy.value === 'status') {
+    //       this.statuses.forEach(status => {
+    //         if (this.$route.query.q === status.value) {
+    //           this.status = status
+    //         }
+    //       });
+    //     }
+    //   }
+    // });
 
-    this.dateByColumns.forEach(dateBy => {
-      if (this.$route.query.date_by && this.$route.query.date_by === dateBy.value) {
-        this.dateBy = dateBy
-      }
-    });
+    // this.dateByColumns.forEach(dateBy => {
+    //   if (this.$route.query.date_by && this.$route.query.date_by === dateBy.value) {
+    //     this.dateBy = dateBy
+    //   }
+    // });
 
-    if (this.$route.query.date_from) {
-      const dateTimeFrom = this.$route.query.date_from
-      this.dateTimeFrom = {
-        text: dateTimeFrom,
-        value: dateTimeFrom
-      }
-    }
+    // if (this.$route.query.date_from) {
+    //   const dateTimeFrom = this.$route.query.date_from
+    //   this.dateTimeFrom = {
+    //     text: dateTimeFrom,
+    //     value: dateTimeFrom
+    //   }
+    // }
 
-    if (this.$route.query.date_to) {
-      const dateTimeTo = this.$route.query.date_to
-      this.dateTimeTo = {
-        text: dateTimeTo,
-        value: dateTimeTo
-      }
-    }
+    // if (this.$route.query.date_to) {
+    //   const dateTimeTo = this.$route.query.date_to
+    //   this.dateTimeTo = {
+    //     text: dateTimeTo,
+    //     value: dateTimeTo
+    //   }
+    // }
   },
 
   mounted() {
     this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
 
-    const socket = this.$io.connect('http://10.0.10.11:4003/logs', { 
+    const socket = this.$io.connect('http://api-clicker.go-wi.com/logs', { 
       transports: ['websocket', 'polling'] 
     })
 
-    socket.on('insert', log => {
-      this.logs.unshift(JSON.parse(log))
+    socket.on('insert', ()  => {
+      this.fetchData()
     })
 
     this.fetchData()
@@ -273,11 +281,11 @@ export default {
     },
 
     updateFilterBy(filter) {
-      this.status = {
-        text:'All',
-        value: ''
-      }
-      this.query = ''
+      // this.status = {
+      //   text:'All',
+      //   value: ''
+      // }
+      // this.query = ''
 
       this.filterBy = filter
     },
@@ -286,10 +294,10 @@ export default {
       this.dateBy = dateBy;
     },
 
-    updateStatus(status) {
-      this.status = status
-      this.query = status.value
-    },
+    // updateStatus(status) {
+    //   this.status = status
+    //   this.query = status.value
+    // },
 
     updateDateTimeFrom(date, time) {
       const dateTime = `${date} ${time}` 
@@ -334,32 +342,43 @@ export default {
     },
 
     search() {
-      const query = {}
-      if (this.filterBy.value !== '') {
-        query.filter_by = this.filterBy.value
+      // const query = {elements}
+
+      const query = {
+        filter_by: [],
+        q: [] 
       }
 
-      query.q = this.query
+      this.filters.forEach(filter => {
+        query.filter_by.push(filter.filter_by)
+        query.q.push(filter.q)
+      });
 
-      if (this.dateBy.value !== '') {
-        query.date_by = this.dateBy.value
-      }
+      console.log(query)
 
-      if (this.dateTimeFrom.value !== '') {
-        query.date_from = this.dateTimeFrom.value
-      }
+      // if (this.filterBy.value !== '') {
+      //   query.filter_by = this.filterBy.value
+      // }
 
-      if (this.dateTimeTo.value !== '') {
-        query.date_to = this.dateTimeTo.value
-      }
+      // query.q = this.query
+
+      // if (this.dateBy.value !== '') {
+      //   query.date_by = this.dateBy.value
+      // }
+
+      // if (this.dateTimeFrom.value !== '') {
+      //   query.date_from = this.dateTimeFrom.value
+      // }
+
+      // if (this.dateTimeTo.value !== '') {
+      //   query.date_to = this.dateTimeTo.value
+      // }
 
       if (!_.isEqual(this.$route.query, query)) {
-        this.$router.push({ 
-          query: query 
-        })
+        this.$router.push({ query: query })
       }
 
-      this.fetchData()
+      // this.fetchData()
     },
 
     clear() {
@@ -385,6 +404,10 @@ export default {
       this.query = ''
 
       this.fetchData()
+    },
+
+    updateFilters(filters) {
+      this.filters = filters
     }
   }
 }

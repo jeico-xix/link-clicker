@@ -2,73 +2,16 @@
   <div
     class="ma-2 d-flex align-center"
   >
-    <div
-      v-for="filter in filters"
+    <base-toolbar-filter
+      v-for="filter in filters" 
       :key="filter.index"
-    >
-      <div 
-        class="mr-2" 
-      >
-        <v-menu
-          offset-y
-        >
-          <template #activator="{ attrs, on }">
-            <v-btn
-              class="mb-1"
-              v-bind="attrs"
-              small
-              v-on="on"
-            >
-              {{ filterBy.text }}
-              <v-icon
-                x-small
-                right
-              >
-                mdi-chevron-down
-              </v-icon>
-            </v-btn>
-
-            <v-btn
-              v-if="filter.index != 1"
-              icon
-              x-small
-              class="ml-1"
-              color="error"
-              @click="removeFilter(filter.index)"
-            >
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </template>
-
-          <v-list>
-            <v-list-item
-              v-for="item in filterByColumns"
-              :key="item.value"
-              link
-              :value="item"
-              @click="$emit('update:filter-by', item)"
-            >
-              <v-list-item-title v-text="item.text" />
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-      <div
-        class="mr-2" 
-      >
-        <slot name="search"></slot>
-      </div>
-    </div>
-    
-    <v-btn
-      icon
-      class="mr-2"
-      color="success"
-      x-small
-      @click="addNewFilter"
-    >
-      <v-icon>mdi-plus</v-icon>
-    </v-btn>
+      :items="filterByColumns"
+      :index="filter.index"
+      :total="filters.length"
+      @add:filter="filters.push({index: filters.length + 1})"
+      @remove:filter="filters.pop(filter.index)"
+      @update:filter="updateFilter"
+    />
 
     <v-divider
       vertical
@@ -156,21 +99,25 @@
 </template>
 
 <script>
+import BaseToolbarFilter from './BaseToolbarFilter.vue'
 import BaseDateTimePicker from './BaseDateTimePicker.vue'
+
 export default {
   components: {
+    BaseToolbarFilter,
     BaseDateTimePicker
   },
   props: {
-    filterBy: Object,
+    // filterBy: Object,
     dateBy: Object,
     filterByColumns: Array,
     dateByColumns: Array,
     dateTimeFrom: Object,
-    dateTimeTo: Object
+    dateTimeTo: Object,
+    items: Array
   },
   emits: [
-    'update:filter-by', 
+    'update:filter-by',
     'update:status', 
     'update:date-by',
     'update:date-from',
@@ -193,21 +140,12 @@ export default {
     // }
   },
 
+  mounted() {
+    const f = this.items
+    console.log(f)
+  },
+
   methods: {
-    addNewFilter() {
-      this.filters.push({
-        index: this.filters.length + 1
-      })
-    },
-
-    removeFilter(index) {
-      this.filters.forEach((filter, i) => {
-        if (index === filter.index) {
-          this.filters.splice(i, 1)
-        }
-      });
-    },
-
     updateDateFrom(date, time) {
       const dateTime = `${date} ${time}`
       this.dateTimeFromValue = {
@@ -226,15 +164,26 @@ export default {
       }
 
       this.$emit('update:date-time-to', date, time)
+    },
+
+    // updateFilterBy(item) {
+    //   console.log(item)
+    // }
+
+    // change (item) {
+    //   console.log(item)
+    // }
+
+    updateFilter(filterBy, val, index) {
+      this.filters.forEach(filter => {
+        if (filter.index === index) {
+          filter.filter_by = filterBy;
+          filter.q = val;
+        }
+      });
+
+      this.$emit('update:filters', this.filters)
     }
   }
 }
 </script>
-
-<style scoped>
-.v-text-field .v-input__control .v-input__slot {
-    min-height: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-</style>

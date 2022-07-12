@@ -8,7 +8,7 @@ import io from 'socket.io-client'
 import _ from 'lodash'
 
 Vue.prototype.$io = io
-Axios.defaults.baseURL = 'http://127.0.0.1:4002';
+Axios.defaults.baseURL = 'http://api-clicker.go-wi.com';
 const token = localStorage.getItem('token')
 Axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
 
