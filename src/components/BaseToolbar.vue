@@ -3,13 +3,14 @@
     class="ma-2 d-flex align-center"
   >
     <base-toolbar-filter
-      v-for="filter in filters" 
+      v-for="(filter, i) in filters"
       :key="filter.index"
+      :value="filter"
       :items="filterByColumns"
-      :index="filter.index"
+      :index="i"
       :total="filters.length"
-      @add:filter="filters.push({index: filters.length + 1})"
-      @remove:filter="filters.pop(filter.index)"
+      @add:filter="addFilter"
+      @remove:filter="removeFilter(filter)"
       @update:filter="updateFilter"
     />
 
@@ -17,51 +18,15 @@
       vertical
       class="mr-2"
     />
-    
-    <div 
-      class="mr-2" 
-    >
-      <v-menu
-        offset-y
-      >
-        <template #activator="{ attrs, on }">
-          <v-btn
-            v-bind="attrs"
-            small
-            v-on="on"
-          >
-            {{ dateBy.text }}
-            <v-icon
-              right
-              x-small
-            >
-              mdi-chevron-down
-            </v-icon>
-          </v-btn>
-        </template>
 
-        <v-list>
-          <v-list-item
-            v-for="item in dateByColumns"
-            :key="item.value"
-            link
-            :value="item"
-            @click="$emit('update:date-by', item)"
-          >
-            <v-list-item-title v-text="item.text" />
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
-
-    <base-date-time-picker
-      :date-time="dateTimeFromValue"
-      @update-date-time="updateDateFrom"
-    />
-
-    <base-date-time-picker
-      :date-time="dateTimeToValue"
-      @update-date-time="updateDateTo"
+    <base-toolbar-filter-date-by
+      :value="currentDateBy"
+      :items="dateByColumns"
+      :date-time-from="dateTimeFrom"
+      :date-time-to="dateTimeTo"
+      @update:filter-date-by="$emit('update:filter-date-by', $event)"
+      @update:date-time-from="$emit('update:date-time-from', $event)"
+      @update:date-time-to="$emit('update:date-time-to', $event)"
     />
 
     <v-btn
@@ -79,7 +44,7 @@
       class="mr-2"
       color="error"
       x-small
-      @click="$emit('clear')"
+      @click="clear"
     >
       <v-icon>mdi-close</v-icon>
     </v-btn>
@@ -100,21 +65,19 @@
 
 <script>
 import BaseToolbarFilter from './BaseToolbarFilter.vue'
-import BaseDateTimePicker from './BaseDateTimePicker.vue'
+import BaseToolbarFilterDateBy from './BaseToolbarFilterDateBy.vue'
 
 export default {
   components: {
     BaseToolbarFilter,
-    BaseDateTimePicker
+    BaseToolbarFilterDateBy
   },
   props: {
-    // filterBy: Object,
     dateBy: Object,
     filterByColumns: Array,
     dateByColumns: Array,
     dateTimeFrom: Object,
-    dateTimeTo: Object,
-    items: Array
+    dateTimeTo: Object
   },
   emits: [
     'update:filter-by',
@@ -126,63 +89,80 @@ export default {
 
   data() {
     return {
-      filters: [{
-        index: 1
-      }],
-      dateTimeFromValue: this.dateTimeFrom,
-      dateTimeToValue: this.dateTimeTo
+      filters: [],
+      defaultFilter: {
+        index: 1,
+        filter_by: '',
+        q: ''
+      },
+      currentDateBy: this.dateBy
     }
   },
-  
-  watch: {
-    // dateFromDatePicker(val) {
-    //   // this.selectedFilterBy = val
-    // }
-  },
 
-  mounted() {
-    const f = this.items
-    console.log(f)
+  created() {
+    const query = this.$route.query;
+
+    const filterBy = query.filter_by;
+    if (!filterBy || filterBy.length === 0) {
+      if (this.filters.push(this.defaultFilter));
+
+      return;
+    }
+
+    const q = query.q;
+
+    if (Array.isArray(filterBy)) {
+      const arrFilterBy = filterBy; 
+      const queryValues = q;
+
+      arrFilterBy.forEach(filter_by => {   
+        this.filters.push({
+          index: this.filters.length + 1,
+          filter_by: filter_by,
+          q: queryValues[this.filters.length]
+        })
+      });
+    } else {
+      this.filters.push({
+        index: this.filters.length + 1,
+        filter_by: filterBy,
+        q: q
+      });
+    }
+
+    this.$emit('update:filters', this.filters)
   },
 
   methods: {
-    updateDateFrom(date, time) {
-      const dateTime = `${date} ${time}`
-      this.dateTimeFromValue = {
-        text: dateTime,
-        value: `${dateTime}:00`
-      }
-
-      this.$emit('update:date-time-from', date, time)
-    },
-
-    updateDateTo(date, time) {
-      const dateTime = `${date} ${time}`
-      this.dateTimeToValue = {
-        text: dateTime,
-        value: `${dateTime}:00`
-      }
-
-      this.$emit('update:date-time-to', date, time)
-    },
-
-    // updateFilterBy(item) {
-    //   console.log(item)
-    // }
-
-    // change (item) {
-    //   console.log(item)
-    // }
-
     updateFilter(filterBy, val, index) {
-      this.filters.forEach(filter => {
-        if (filter.index === index) {
-          filter.filter_by = filterBy;
-          filter.q = val;
-        }
-      });
+      const filter = this.filters[index]
+      if (filter) {
+        filter.filter_by = filterBy;
+        filter.q = val;
+      }
 
       this.$emit('update:filters', this.filters)
+    },
+
+    addFilter() {
+      this.filters.push({
+        index: this.filters.length + 1
+      })
+    },
+
+    removeFilter(filter) {
+      const index = this.filters.indexOf(filter);
+      this.filters.splice(index, 1);
+    },
+
+    clear() {
+      this.filters.forEach((filter, index) => {
+        Object.assign({}, filter)
+        this.filters.splice(index, 1)
+      });
+
+      this.filters.push(this.defaultFilter);
+      this.$emit('clear');
     }
   }
 }

@@ -1,6 +1,5 @@
 /* eslint no-shadow: ["error", { "allow": ["state"] }]*/
-
-import Axios from '../axios';
+import http from '../../plugins/http';
 
 const state = {
   logs: [
@@ -14,7 +13,7 @@ const getters = {
 
 const actions = {
   async fetchLogs({ commit }) {
-    const response = await Axios.get('/sites');
+    const response = await http.get('/sites');
     commit('setLogs', response.data.list);
   }
 }

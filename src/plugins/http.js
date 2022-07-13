@@ -1,11 +1,13 @@
-import Axios from 'axios'
+import Vue from 'vue';
+import * as http from 'axios';
+import router from '../router';
 
-Axios.defaults.baseURL = 'http://127.0.0.1:4002';
+http.defaults.baseURL = process.env.VUE_APP_API_URL;
 const token = localStorage.getItem('token')
-Axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
+http.defaults.headers.common = { 'Authorization': `bearer ${token}` }
 
 // Add a response interceptor
-Axios.interceptors.response.use(function (response) {
+http.interceptors.response.use(function (response) {
   return response;
 }, function (error) {
   // Any status codes that falls outside the range of 2xx cause this function to trigger
@@ -18,11 +20,12 @@ Axios.interceptors.response.use(function (response) {
     localStorage.clear();
     localStorage.setItem(key, isDarkMode);
 
-    // if (!_.isEqual(router)) {
-    //   router.replace('/login');
-    // }
+    if (!Vue._.isEqual(router)) {
+      router.replace('/login');
+    }
   }
   return Promise.reject(error);
 });
 
-export default Axios
+Vue.prototype.$http = http
+export default http

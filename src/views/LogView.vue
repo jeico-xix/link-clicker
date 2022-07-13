@@ -12,58 +12,13 @@
       :date-time-to="dateTimeTo"
       @update:filters="updateFilters"
       @update:filter-by="updateFilterBy"
-      @update:date-by="updateDateBy"
+      @update:filter-date-by="updateFilterDateBy"
       @update:date-time-from="updateDateTimeFrom"
       @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
       @search="search"
       @clear="clear"
-    >
-      <template #search>
-        <v-text-field
-          v-if="filterBy.value !== 'status'"
-          hide-details
-          x-small
-          outlined
-          label="Search"
-          dense
-          single-line
-          class="shrink"
-        />
-
-        <v-menu 
-          v-else
-          offset-y
-        >
-          <template #activator="{ attrs, on }">
-            <v-btn
-              v-bind="attrs"
-              small
-              v-on="on"
-            >
-              {{ status.text }}
-              <v-icon
-                x-small
-                right
-              >
-                mdi-chevron-down
-              </v-icon>
-            </v-btn>
-          </template>
-
-          <v-list>
-            <v-list-item
-              v-for="item in statuses"
-              :key="item.value"
-              link
-              :value="item"
-            >
-              <v-list-item-title v-text="item.text" />
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </template>
-    </base-toolbar>
+    />
 
     <v-data-table
       dense
@@ -98,7 +53,6 @@
 
 <script>
 // import BaseTab from '../components/BaseTab'
-import _ from 'lodash'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
@@ -146,32 +100,10 @@ export default {
         value: 'status'
       },
       {
-        text: 'Status',
-        value: 'status'
+        text: 'IP',
+        value: 'ip'
       }
     ],
-    statuses: [
-      {
-        text: 'All',
-        value: ''
-      },
-      {
-        text: 'On-Going',
-        value: 'on-going'
-      },
-      {
-        text: 'Success',
-        value: 'success'
-      }
-      ,      {
-        text: 'Failed',
-        value: 'failed'
-      }
-    ],
-    status: {      
-      text: 'All',
-      value: ''
-    },
     dateByColumns: [
       {
         text: 'Started At',
@@ -194,7 +126,7 @@ export default {
       text: 'Date By',
       value: ''
     },
-    query: '',
+    // query: '',
     dateTimeFrom: {
       text: 'Date From',
       value: ''
@@ -210,8 +142,6 @@ export default {
   }),
 
   created() {
-    const query = this.$route.query
-    console.log(query)
     // if (this.$route.query.q) {
     //   this.query = this.$route.query.q
     // }
@@ -256,10 +186,7 @@ export default {
   mounted() {
     this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
 
-    const socket = this.$io.connect('http://api-clicker.go-wi.com/logs', { 
-      transports: ['websocket', 'polling'] 
-    })
-
+    const socket = this.$manager.socket('/logs');
     socket.on('insert', ()  => {
       this.fetchData()
     })
@@ -286,11 +213,12 @@ export default {
       //   value: ''
       // }
       // this.query = ''
+      console.log(filter)
 
-      this.filterBy = filter
+      // this.filterBy = filter
     },
 
-    updateDateBy(dateBy) {
+    updateFilterDateBy(dateBy) {
       this.dateBy = dateBy;
     },
 
@@ -354,27 +282,19 @@ export default {
         query.q.push(filter.q)
       });
 
-      console.log(query)
+      if (this.dateBy.value !== '') {
+        query.date_by = this.dateBy.value
+      }
 
-      // if (this.filterBy.value !== '') {
-      //   query.filter_by = this.filterBy.value
-      // }
+      if (this.dateTimeFrom.value !== '') {
+        query.date_from = this.dateTimeFrom.value
+      }
 
-      // query.q = this.query
+      if (this.dateTimeTo.value !== '') {
+        query.date_to = this.dateTimeTo.value
+      }
 
-      // if (this.dateBy.value !== '') {
-      //   query.date_by = this.dateBy.value
-      // }
-
-      // if (this.dateTimeFrom.value !== '') {
-      //   query.date_from = this.dateTimeFrom.value
-      // }
-
-      // if (this.dateTimeTo.value !== '') {
-      //   query.date_to = this.dateTimeTo.value
-      // }
-
-      if (!_.isEqual(this.$route.query, query)) {
+      if (!this.$_.isEqual(this.$route.query, query)) {
         this.$router.push({ query: query })
       }
 
@@ -382,28 +302,34 @@ export default {
     },
 
     clear() {
-      if (!_.isEqual(this.$route.query, {})) {
-        this.$router.push({ query: {} })
-      }
+      // if (!this.$_.isEqual(this.$route.query, {})) {
+      //   this.$router.push({ query: {} })
+      // }
 
-      this.filterBy = {
-        text: 'Filter By',
-        value: ''
-      }
+      // this.filters = [{
+      //   index: 1
+      // }]
 
-      this.dateBy = {
-        text: 'Date By',
-        value: ''
-      }
+      // console.log(this.filters)
 
-      this.dateTimeFrom = {
-        text: 'Date From',
-        value: ''
-      }
+      // this.filterBy = {
+      //   text: 'Filter By',
+      //   value: ''
+      // }
 
-      this.query = ''
+      // this.dateBy = {
+      //   text: 'Date By',
+      //   value: ''
+      // }
 
-      this.fetchData()
+      // this.dateTimeFrom = {
+      //   text: 'Date From',
+      //   value: ''
+      // }
+
+      // this.query = ''
+
+      // this.fetchData()
     },
 
     updateFilters(filters) {

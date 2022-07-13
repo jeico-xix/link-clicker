@@ -5,12 +5,13 @@
     <base-toolbar-filter-menu
       small
       :items="items"
-      :value="{text: 'Filter By', value: ''}"
+      :value="filter"
+      :default-value="{text: 'Filter By', value: ''}"
       @change="changeFilter"
     >
       <template #action>
         <v-btn
-          v-if="index != 1"
+          v-if="total > 1"
           icon
           x-small
           class="ml-1 mb-1"
@@ -21,7 +22,7 @@
         </v-btn>
 
         <v-btn
-          v-if="index === total"
+          v-if="(index + 1) === total"
           icon
           class="ml-1 mb-1"
           color="success"
@@ -34,7 +35,7 @@
     </base-toolbar-filter-menu>
 
     <v-text-field
-      v-if="filterBy.value !== 'status'"
+      v-if="filter.value !== 'status'"
       hide-details
       x-small
       outlined
@@ -42,6 +43,7 @@
       dense
       single-line
       class="shrink"
+      :value="filter.q"
       @input="changeValue($event, index)"
     />
 
@@ -49,13 +51,13 @@
       v-else
       :items="statuses"
       :value="status"
+      :default-value="{text: 'All', value: ''}"
       @change="changeStatus($event, index)"
     />
   </div>
 </template>
 
 <script>
-// import _ from 'lodash'
 import BaseToolbarFilterMenu from './BaseToolbarFilterMenu.vue'
 
 export default {
@@ -65,13 +67,14 @@ export default {
 	
   props: {
     index: Number,
+    value: Object,
     total: Number,
     items: Array
   },
 
   data() {
     return {
-      filterBy: {},
+      filter: this.value,
       status: {
         text: 'All',
         value: ''
@@ -98,18 +101,48 @@ export default {
     }
   },
 
+  created() {
+    if (!this.filter.filter_by) {
+      this.filter = {
+        text: 'Filter By',
+        value: ''
+      }
+
+      return;
+    }
+
+    this.items.forEach(item => {
+      if (this.filter.filter_by === item.value) {
+        const q = this.filter.q
+        this.filter = item
+        this.filter.q = q
+
+        if (this.filter.value === 'status') {
+          this.status = this.$_.find(this.statuses, {value: this.filter.q});
+          if (!this.status) {
+            this.status = {
+              text: 'All',
+              value: ''
+            }
+          }
+        }
+      }
+      return;
+    });
+  },
+
   methods: {
     changeFilter(item, index) {
-      this.filterBy = item
-      this.$emit('update:filter', this.filterBy.value, this.q, index)
+      this.filter = item
+      this.$emit('update:filter', this.filter.value, this.q, index)
     },
 
     changeValue(e, index) {
-      this.$emit('update:filter', this.filterBy.value, e, index)
+      this.$emit('update:filter', this.filter.value, e, index)
     },
 
     changeStatus(status, index) {
-      this.$emit('update:filter', this.filterBy.value, status.value, index)
+      this.$emit('update:filter', this.filter.value, status.value, index)
     }
   }
 }

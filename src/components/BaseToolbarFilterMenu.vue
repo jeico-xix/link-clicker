@@ -51,7 +51,7 @@ export default {
       selectedItem: this.value
     }
   },
-
+  
   methods: {
     click (item) {
       this.selectedItem = item;

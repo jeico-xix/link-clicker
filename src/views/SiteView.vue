@@ -311,7 +311,6 @@
 
 <script>
 // import BaseTab from '../components/BaseTab'
-import _ from 'lodash'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
@@ -536,7 +535,7 @@ export default {
 
       query.q = this.query
 
-      if (!_.isEqual(this.$route.query, query)) {
+      if (!this.$_.isEqual(this.$route.query, query)) {
         this.$router.push({ 
           query: query 
         })
