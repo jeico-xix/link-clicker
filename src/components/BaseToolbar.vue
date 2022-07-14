@@ -4,13 +4,13 @@
   >
     <base-toolbar-filter
       v-for="(filter, i) in filters"
-      :key="filter.index"
+      :key="i"
       :value="filter"
       :items="filterByColumns"
       :index="i"
       :total="filters.length"
       @add:filter="addFilter"
-      @remove:filter="removeFilter(filter)"
+      @remove:filter="removeFilter(i)"
       @update:filter="updateFilter"
     />
 
@@ -25,8 +25,8 @@
       :date-time-from="dateTimeFrom"
       :date-time-to="dateTimeTo"
       @update:filter-date-by="$emit('update:filter-date-by', $event)"
-      @update:date-time-from="$emit('update:date-time-from', $event)"
-      @update:date-time-to="$emit('update:date-time-to', $event)"
+      @update:date-time-from="updateDateTime('date-time-from', $event)"
+      @update:date-time-to="updateDateTime('date-time-to', $event)"
     />
 
     <v-btn
@@ -34,7 +34,7 @@
       class="mr-2" 
       color="success"
       x-small
-      @click="$emit('search')"
+      @click="search"
     >
       <v-icon>mdi-magnify</v-icon>
     </v-btn>
@@ -64,6 +64,7 @@
 </template>
 
 <script>
+import _ from 'lodash'
 import BaseToolbarFilter from './BaseToolbarFilter.vue'
 import BaseToolbarFilterDateBy from './BaseToolbarFilterDateBy.vue'
 
@@ -89,12 +90,10 @@ export default {
 
   data() {
     return {
-      filters: [],
-      defaultFilter: {
-        index: 1,
+      filters: [{
         filter_by: '',
         q: ''
-      },
+      }],
       currentDateBy: this.dateBy
     }
   },
@@ -104,7 +103,11 @@ export default {
 
     const filterBy = query.filter_by;
     if (!filterBy || filterBy.length === 0) {
-      if (this.filters.push(this.defaultFilter));
+      console.log(this.filters)
+
+      // if (this.filters.push({
+
+      // }));
 
       return;
     }
@@ -134,11 +137,11 @@ export default {
   },
 
   methods: {
-    updateFilter(filterBy, val, index) {
-      const filter = this.filters[index]
+    updateFilter(item, index) {
+      const filter = this.filters[index];
       if (filter) {
-        filter.filter_by = filterBy;
-        filter.q = val;
+        filter.filter_by = item.value;
+        filter.q = item.q;
       }
 
       this.$emit('update:filters', this.filters)
@@ -146,23 +149,87 @@ export default {
 
     addFilter() {
       this.filters.push({
-        index: this.filters.length + 1
+        filter_by: '',
+        q: ''
       })
     },
 
-    removeFilter(filter) {
-      const index = this.filters.indexOf(filter);
+    removeFilter(index) {
       this.filters.splice(index, 1);
+      this.$emit('update:filters', this.filters)
+    },
+
+    search() {
+      const query = this.getParams()
+
+      if (!_.isEqual(this.$route.query, query)) {
+        this.$router.push({ query: query })
+      }
+
+      this.$emit('search')
+    },
+
+    getParams() {
+      const filterBy = [];
+      const q = [];
+
+      this.filters.forEach(filter => {
+        if (filter.filter_by) {
+          filterBy.push(filter.filter_by);
+          q.push(filter.q);
+        }
+      });
+
+      const query = {}
+      if (filterBy.length === 1) {
+        console.log(filterBy)
+
+        query.filter_by = filterBy[0];
+        query.q = q[0];
+      } else {
+        // filterBy.forEach(filter => {
+        //   if (filter.filter_by) {
+        //     filterBy.push(filter.filter_by);
+        //     q.push(filter.q);
+        //   }
+        // });
+      }
+
+      if (filterBy.length > 0) {
+        query.filter_by = filterBy;
+        query.q = q;
+      }
+
+      if (this.dateBy.value !== '') {
+        query.date_by = this.dateBy.value
+      }
+
+      if (this.dateTimeFrom.value !== '') {
+        query.date_from = this.dateTimeFrom.value
+      }
+
+      if (this.dateTimeTo.value !== '') {
+        query.date_to = this.dateTimeTo.value
+      }
+
+      return query
     },
 
     clear() {
-      this.filters.forEach((filter, index) => {
-        Object.assign({}, filter)
-        this.filters.splice(index, 1)
-      });
+      this.filters = [{}]
 
-      this.filters.push(this.defaultFilter);
-      this.$emit('clear');
+      // this.filters.forEach((filter, index) => {
+      //   const a = Object.assign({}, filter)
+      //   console.log(a)
+      //   this.filters.splice(index, this.filters.length)
+      // });
+
+      // this.filters.push(this.defaultFilter);
+      // this.$emit('clear');
+    },
+
+    updateDateTime(eventName, e) {
+      this.$emit(`update:${eventName}`, e)
     }
   }
 }

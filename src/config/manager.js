@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { Manager } from 'socket.io-client'
 
 const manager = new Manager(process.env.VUE_APP_SOCKET_URL, {
@@ -6,5 +5,4 @@ const manager = new Manager(process.env.VUE_APP_SOCKET_URL, {
   transports: ['websocket', 'polling'] 
 });
 
-Vue.prototype.$manager = manager;
-export default manager
+export const logs = manager.socket('/logs')

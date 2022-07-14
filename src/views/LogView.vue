@@ -10,6 +10,7 @@
       :date-by="dateBy"
       :date-time-from="dateTimeFrom"
       :date-time-to="dateTimeTo"
+      :items="filters"
       @update:filters="updateFilters"
       @update:filter-by="updateFilterBy"
       @update:filter-date-by="updateFilterDateBy"
@@ -26,6 +27,7 @@
       :items="logs"
       class="elevation-1"
       :items-per-page="itemsPerPage"
+      :loading="isLoading"
       @update:page="updatePage"
       @update:items-per-page="updateItemsPerPage"
     >
@@ -52,6 +54,10 @@
 </template>
 
 <script>
+import {
+  logs as LogsSocket
+} from '@/config/manager'
+// import _ from 'lodash'
 // import BaseTab from '../components/BaseTab'
 import BaseToolbar from '../components/BaseToolbar'
 
@@ -73,11 +79,13 @@ export default {
     //     'text': 'Deleted'
     //   }
     // ],
+    isLoading: false,
     headers: [
       { text: '#', value: 'number' },
       { text: 'Site Name', value: 'sites.name' },
       { text: 'Tag', value: 'tags.name' },
       { text: 'Status', value: 'status' },
+      { text: 'Country', value: 'country.name' },
       { text: 'IP', value: 'ip' },
       { text: 'Page', value: 'page' },
       { text: 'Started At', value: 'started_at' },
@@ -126,7 +134,6 @@ export default {
       text: 'Date By',
       value: ''
     },
-    // query: '',
     dateTimeFrom: {
       text: 'Date From',
       value: ''
@@ -185,13 +192,11 @@ export default {
 
   mounted() {
     this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
+    this.fetchData()
 
-    const socket = this.$manager.socket('/logs');
-    socket.on('insert', ()  => {
+    LogsSocket.on('insert', ()  => {
       this.fetchData()
     })
-
-    this.fetchData()
   },
 
   methods: {
@@ -227,20 +232,12 @@ export default {
     //   this.query = status.value
     // },
 
-    updateDateTimeFrom(date, time) {
-      const dateTime = `${date} ${time}` 
-      this.dateTimeFrom = {
-        text: dateTime,
-        value: `${dateTime}:00`
-      }
+    updateDateTimeFrom(e) {
+      this.dateTimeFrom = e
     },
 
-    updateDateTimeTo(date, time) {
-      const dateTime = `${date} ${time}` 
-      this.dateTimeTo = {
-        text: dateTime,
-        value: `${dateTime}:00`
-      }
+    updateDateTimeTo(e) {
+      this.dateTimeTo = e
     },
 
     updatePage(page) {
@@ -252,88 +249,33 @@ export default {
       this.itemsPerPage = number
     },
 
-    fetchData() {
-      const params = [
-        `${(this.$route.query.filter_by) ? `filter_by=${this.$route.query.filter_by}` : ''}`,
-        `q=${this.$route.query.q}`,
-        `${(this.$route.query.date_by) ? `date_by=${this.$route.query.date_by}` : ''}`,
-        `${(this.$route.query.date_from) ? `date_from=${this.$route.query.date_from}` : ''}`,
-        `${(this.$route.query.date_to) ? `date_to=${this.$route.query.date_to}` : ''}`
-      ]
-
-      const queryParams = params.join('&');
-
-      this.$http.get(`/logs?${queryParams}`)
-        .then(response => {
-          this.logs = response.data.list
-        })
-    },
-
-    search() {
-      // const query = {elements}
-
-      const query = {
-        filter_by: [],
-        q: [] 
-      }
-
-      this.filters.forEach(filter => {
-        query.filter_by.push(filter.filter_by)
-        query.q.push(filter.q)
-      });
-
-      if (this.dateBy.value !== '') {
-        query.date_by = this.dateBy.value
-      }
-
-      if (this.dateTimeFrom.value !== '') {
-        query.date_from = this.dateTimeFrom.value
-      }
-
-      if (this.dateTimeTo.value !== '') {
-        query.date_to = this.dateTimeTo.value
-      }
-
-      if (!this.$_.isEqual(this.$route.query, query)) {
-        this.$router.push({ query: query })
-      }
-
-      // this.fetchData()
-    },
-
     clear() {
-      // if (!this.$_.isEqual(this.$route.query, {})) {
-      //   this.$router.push({ query: {} })
-      // }
-
-      // this.filters = [{
-      //   index: 1
-      // }]
-
-      // console.log(this.filters)
-
-      // this.filterBy = {
-      //   text: 'Filter By',
-      //   value: ''
-      // }
-
-      // this.dateBy = {
-      //   text: 'Date By',
-      //   value: ''
-      // }
-
-      // this.dateTimeFrom = {
-      //   text: 'Date From',
-      //   value: ''
-      // }
-
-      // this.query = ''
-
-      // this.fetchData()
+      this.fetchData()
     },
 
     updateFilters(filters) {
       this.filters = filters
+    },
+
+    search() {
+      this.fetchData()
+    },
+    
+    async fetchData() {
+      try {
+        this.isLoading = true;
+
+        const response = await this.$http.get('/logs', {
+          params: this.$route.query
+        });
+
+        this.isLoading = false;
+
+        this.logs = response.data.list;
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error.response.data
+      }
     }
   }
 }

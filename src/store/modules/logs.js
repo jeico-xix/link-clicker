@@ -1,5 +1,5 @@
 /* eslint no-shadow: ["error", { "allow": ["state"] }]*/
-import http from '../../plugins/http';
+import http from '@/plugins/http'
 
 const state = {
   logs: [

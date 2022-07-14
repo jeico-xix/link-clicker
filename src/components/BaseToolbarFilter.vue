@@ -2,12 +2,13 @@
   <div 
     class="mt-1 mr-2"
   >
+    <slot></slot>
     <base-toolbar-filter-menu
       small
       :items="items"
       :value="filter"
       :default-value="{text: 'Filter By', value: ''}"
-      @change="changeFilter"
+      @change="changeFilter($event, index)"
     >
       <template #action>
         <v-btn
@@ -43,7 +44,7 @@
       dense
       single-line
       class="shrink"
-      :value="filter.q"
+      :value="q"
       @input="changeValue($event, index)"
     />
 
@@ -133,16 +134,21 @@ export default {
 
   methods: {
     changeFilter(item, index) {
-      this.filter = item
-      this.$emit('update:filter', this.filter.value, this.q, index)
+      this.filter = item;
+      this.filter.q = this.q;
+      this.$emit('update:filter', this.filter, index)
     },
 
     changeValue(e, index) {
-      this.$emit('update:filter', this.filter.value, e, index)
+      this.q = e;
+      this.filter.q = this.q;
+      this.$emit('update:filter', this.filter, index)
     },
 
     changeStatus(status, index) {
-      this.$emit('update:filter', this.filter.value, status.value, index)
+      this.q = status.value;
+      this.filter.q = this.q;
+      this.$emit('update:filter', this.filter, index)
     }
   }
 }

@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import LoginView from '../views/LoginView'
 import SiteView from '../views/SiteView'
 import LogView from '../views/LogView'
+import SettingView from '../views/SettingView'
 
 Vue.use(VueRouter)
 
@@ -38,6 +39,14 @@ const routes = [
     meta: {
       requiresAuth: false
     }
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: SettingView,
+    meta: {
+      requiresAuth: false
+    }
   }
 ]
 
@@ -52,5 +61,10 @@ const router = new VueRouter({
 //   // else next()
 //   next()
 // })
+
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push (location) {
+  return originalPush.call(this, location).catch(err => err)
+}
 
 export default router

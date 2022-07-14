@@ -1,13 +1,11 @@
-import Vue from 'vue';
-import * as http from 'axios';
-import router from '../router';
+import Axios from 'axios';
 
-http.defaults.baseURL = process.env.VUE_APP_API_URL;
+Axios.defaults.baseURL = process.env.VUE_APP_API_URL;
 const token = localStorage.getItem('token')
-http.defaults.headers.common = { 'Authorization': `bearer ${token}` }
+Axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
 
 // Add a response interceptor
-http.interceptors.response.use(function (response) {
+Axios.interceptors.response.use(function (response) {
   return response;
 }, function (error) {
   // Any status codes that falls outside the range of 2xx cause this function to trigger
@@ -20,12 +18,15 @@ http.interceptors.response.use(function (response) {
     localStorage.clear();
     localStorage.setItem(key, isDarkMode);
 
-    if (!Vue._.isEqual(router)) {
-      router.replace('/login');
-    }
+    // if (!_.isEqual(router)) {
+    //   router.replace('/login');
+    // }
   }
   return Promise.reject(error);
 });
 
-Vue.prototype.$http = http
-export default http
+export default {
+  install(Vue) {
+    Vue.prototype.$http = Axios
+  }
+}

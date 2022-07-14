@@ -34,20 +34,19 @@
     </base-toolbar>
 
     <v-divider />
-
     <v-data-table
       :loading="isLoading"
       loading-text="Loading... Please wait"
       dense
       :headers="headers"
-      :items="sites"
+      :items="settings"
       class="elevation-1"
     >
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>Sites</v-toolbar-title>
+          <v-toolbar-title>Settings</v-toolbar-title>
           <v-spacer />
-          
+
           <v-dialog 
             v-model="tagsDialog" 
             max-width="800px"
@@ -86,6 +85,7 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+
           <v-dialog 
             v-model="dialog" 
             max-width="600px"
@@ -100,7 +100,7 @@
                 v-on="on"
               >
                 <v-icon>mdi-plus</v-icon>
-                New Site
+                New Country
               </v-btn>
             </template>
             <v-form
@@ -127,85 +127,44 @@
                     <v-row>
                       <v-col
                         cols="12"
-                        sm="6"
-                        md="6"
+                        sm="4"
+                        md="4"
                       >
                         <v-text-field
-                          v-model="editedItem.name"
+                          v-model="editedItem.country"
                           outlined
-                          label="Name"
-                          :rules="nameRules"
+                          label="Country"
+                          :rules="countryRules"
                           required
-                          name="username"
+                          name="country"
                           autocomplete="off"
                           autofocus
                         />
                       </v-col>
                       <v-col
                         cols="12"
-                        sm="6"
-                        md="6"
+                        sm="4"
+                        md="4"
                       >
                         <v-text-field
-                          v-model="editedItem.url"
+                          v-model="editedItem.cca2"
                           outlined
-                          label="URL"
-                          :rules="urlRules"
+                          label="Alpha 2 Code"
+                          :counter="2"
+                          :rules="cca2Rules"
                           autocomplete="off"
                         />
                       </v-col>
                       <v-col
                         cols="12"
-                        sm="12"
-                        md="12"
+                        sm="4"
+                        md="4"
                       >
                         <v-text-field
-                          v-model="editedItem.api"
+                          v-model="editedItem.status"
                           outlined
-                          label="API"
-                          :rules="apiRules"
+                          label="Status"
                           autocomplete="off"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col
-                        cols="12"
-                        sm="4"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model.number="editedItem.settings.start"
-                          outlined
-                          type="number"
-                          label="Start"
-                          oninput="if(this.value < 1) this.value = 1;"
-                        />
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="4"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model.number="editedItem.settings.end"
-                          outlined
-                          type="number"
-                          label="End"
-                          oninput="if(this.value < 1) this.value = 1;"
-                        />
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="4"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model.number="editedItem.settings.page_limit"
-                          outlined
-                          type="number"
-                          label="Page Limit"
-                          oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
                     </v-row>
@@ -228,7 +187,7 @@
                     text
                     :disabled="!isValid"
                     type="submit"
-                    :loading="isSaving"
+                    :loading="isLoading"
                   >
                     <v-icon>
                       mdi-check
@@ -239,6 +198,7 @@
               </v-card>
             </v-form>
           </v-dialog>
+
           <v-dialog
             v-model="dialogDelete"
             max-width="500px"
@@ -258,6 +218,7 @@
                 <v-btn
                   color="red darken-1"
                   text
+                  :loading="isLoading"
                   @click="deleteItemConfirm"
                 >
                   Confirm
@@ -268,34 +229,27 @@
           </v-dialog>
         </v-toolbar>
       </template>
-
-      <template #[`item.tags`]="{item}">
-        <div v-if="item.tags">
+      <template #[`item.status`]="{item}">
+        <div>
           <v-chip
-            v-for="tag in item.tags.slice(0, tagsLimit)"
-            :key="tag.id"
-            class="ma-2"
-            color="primary"
             small
+            :class="getStatusClass(item.status)"
           >
-            {{ tag.name }}
-          </v-chip>
-          <v-chip
-            v-if="item.tags.length > tagsLimit"
-            small
-            class="ma-2"
-            @click="showMoreTags(item.tags)"
-          >
-            Show All
+            {{ item.status.toUpperCase() }}
           </v-chip>
         </div>
       </template>
-
       <template #[`item.number`]="{index}">
         {{ index + 1 }}
       </template>
-
       <template #[`item.actions`]="{ item }">
+        <v-icon
+          small
+          class="mr-2"
+          @click="toggleItemStatus(item)"
+        >
+          mdi-power
+        </v-icon>
         <v-icon
           small
           class="mr-2"
@@ -316,11 +270,10 @@
 
 <script>
 // import BaseTab from '../components/BaseTab'
-import _ from 'lodash';
-import BaseToolbar from '../components/BaseToolbar';
+import BaseToolbar from '../components/BaseToolbar'
 
 export default {
-  name: 'SiteView',
+  name: 'SettingView',
   components: {
     // BaseTab,
     BaseToolbar
@@ -343,61 +296,57 @@ export default {
     dialogDelete: false,
     headers: [
       { text: '#', value: 'number' },
-      { text: 'Name', value: 'name' },
-      { text: 'URL', value: 'url' },
-      { text: 'API', value: 'api' },
-      { text: 'Tags', value: 'tags' },
+      { text: 'Country', value: 'name' },
+      { text: 'Alpha 2 Code', value: 'code' },
+      { text: 'Status', value: 'status' },
       { text: 'Created At', value: 'created_at' },
       { text: 'Actions', value: 'actions', sortable: false }
     ],
-    sites: [],
+    settings: [],
     tags: [],
-    isLoading: false,
     isValid: false,
-    isSaving: false,
-    nameRules: [
-      v => !!v || 'Name is required'
+    isLoading: false,
+    countryRules: [
+      v => !!v || 'Country is required'
     ],
-    urlRules: [
-      v => !!v || 'URL is required'
-    ],
-    apiRules: [
-      v => !!v || 'API is required'
+    cca2Rules: [
+      v => !!v || 'Alpha 2 Code is required',
+      v => v.length <= 2 || 'Alpha 2 Code must be a maximum of 2 characters'
     ],
     error: '',
     editedIndex: -1,
     editedItem: {
-      name: '',
-      url: '',
-      api: '',
-      settings: {
-        start: 1,
-        end: 2,
-        page_limit: 0
-      }
+      country: '',
+      cca2: '',
+      status: ''
     },
     defaultItem: {
-      name: '',
-      url: '',
-      api: '',
-      settings: {
-        start: 1,
-        end: 2,
-        page_limit: 0
-      }
+      country: '',
+      cca2: '',
+      status: ''
     },
     filterByColumns: [
       {
-        text: 'Name',
+        text: 'Country',
         value: 'name'
       },
       {
-        text: 'URL',
-        value: 'url'
+        text: 'Alpha 2 Code',
+        value: 'cca2'
       },
       {
-        text: 'API',
-        value: 'api'
+        text: 'Status',
+        value: 'status',
+        items: [
+          {
+            text: 'Enabled',
+            value: 'enabled'
+          },
+          {
+            text: 'Disabled',
+            value: 'disabled'
+          }
+        ]
       }
     ],
     dateByColumns: [
@@ -430,7 +379,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'New Site' : 'Edit Site'
+      return this.editedIndex === -1 ? 'New Country' : 'Edit Country'
     }
   },
 
@@ -473,16 +422,14 @@ export default {
   },
 
   methods: {
-    // tabChange(e) {
-    //   console.log(e)
-    // },
+    getStatusClass(status) {
+      if (status === 'enabled') {
+        return 'success'
+      }
 
-    showMoreTags(tags) {
-      this.tags = tags
-      this.tagsDialog = true
-      
+      return 'red'
     },
-
+    
     closeTagsDialog() {
       this.tagsDialog = false
     },
@@ -517,35 +464,27 @@ export default {
       }
     },
 
-    search() {
-      const query = {}
-      if (this.filterBy.value !== '') {
-        query.filter_by = this.filterBy.value
+    toggleItemStatus(item) {
+      let status = 'disabled'
+      if (item.status === 'disabled') {
+        status = 'enabled'
       }
 
-      query.q = this.query
-
-      if (!_.isEqual(this.$route.query, query)) {
-        this.$router.push({ 
-          query: query 
-        })
-      }
-
-      this.fetchData()
-    },
-
-    clear() {
-      this.fetchData()
+      item.status = status
+      this.editedIndex = this.settings.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.isValid = true;
+      this.save()
     },
 
     editItem(item) {
-      this.editedIndex = this.sites.indexOf(item)
+      this.editedIndex = this.settings.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem(item) {
-      this.editedIndex = this.sites.indexOf(item)
+      this.editedIndex = this.settings.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
@@ -568,24 +507,30 @@ export default {
       })
     },
 
+    search() {
+      this.fetchData()
+    },
+
+    clear() {
+      this.fetchData()
+    },
+
     async fetchData() {
       try {
         this.isLoading = true;
-        
-        const response = await this.$http.get('/sites', {
+        const response = await this.$http.get('/countries', {
           params: this.$route.query
         });
 
+        this.settings = response.data.list;
         this.isLoading = false;
-
-        this.sites = response.data.list;
       } catch (error) {
         this.isLoading = false;
         this.error = error.response.data
       }
     },
 
-    async save() {
+    async save() {      
       if (!this.isValid) {
         return;
       }
@@ -600,7 +545,7 @@ export default {
         try {
           this.isLoading = true;
 
-          await this.$http.patch(`/sites/${this.editedItem.id}`, item)
+          await this.$http.patch(`/countries/${this.editedItem.id}`, item)
 
           this.close()
 
@@ -615,7 +560,7 @@ export default {
       try {
         this.isLoading = true;
 
-        await this.$http.post('/sites', item)
+        await this.$http.post('/countries', item)
         
         this.close()
         
@@ -625,12 +570,15 @@ export default {
         this.error = error.response.data
       }
     },
-
+    
     async deleteItemConfirm() {
       try {
         this.isLoading = true;
-        await this.$http.delete(`/sites/${this.editedItem.id}`);
+
+        await this.$http.delete(`/countries/${this.editedItem.id}`)
+        
         this.closeDelete()
+        
         this.fetchData()
       } catch (error) {
         this.isLoading = false;

@@ -89,7 +89,8 @@ export default {
       toggle: true,
       links: [
         { icon: 'mdi-sitemap', text: 'Sites', route: 'sites' },
-        { icon: 'mdi-note-multiple', text: 'Logs', route: 'logs' }
+        { icon: 'mdi-note-multiple', text: 'Logs', route: 'logs' },
+        { icon: 'mdi-wrench', text: 'Settings', route: 'settings' }
       ]
     }
   },

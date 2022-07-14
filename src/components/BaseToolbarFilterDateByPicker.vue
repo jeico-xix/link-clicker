@@ -113,7 +113,9 @@ export default {
 
       const time = this.items[this.selectedTimeIndex]
 
-      this.$emit('update:date-time', this.datePicker, time)
+      this.$emit('update:date-time', {
+        date: this.datePicker, time
+      })
     }
   }
 }

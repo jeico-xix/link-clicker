@@ -10,12 +10,12 @@
     <div class="d-flex">
       <base-toolbar-filter-date-by-picker
         :date-time="dateTimeFromValue"
-        @update:date-time="updateDateFrom"
+        @update:date-time="updateDateTime('date-time-from', $event)"
       />
 
       <base-toolbar-filter-date-by-picker
         :date-time="dateTimeToValue"
-        @update:date-time="updateDateTo"
+        @update:date-time="updateDateTime('date-time-to', $event)"
       />
     </div>
   </div>
@@ -48,24 +48,20 @@ export default {
   },
 
   methods: {
-    updateDateFrom(date, time) {
-      const dateTime = `${date} ${time}`
-      this.dateTimeFromValue = {
+    updateDateTime(eventName, e) {
+      const dateTime = `${e.date} ${e.time}`
+      const objDateTime = {
         text: dateTime,
-        value: `${dateTime}:00`
+        value: dateTime
       }
 
-      this.$emit('update:date-time-from', date, time)
-    },
-
-    updateDateTo(date, time) {
-      const dateTime = `${date} ${time}`
-      this.dateTimeToValue = {
-        text: dateTime,
-        value: `${dateTime}:00`
+      if (eventName === 'date-time-from') {
+        this.dateTimeFromValue = objDateTime
+      } else {
+        this.dateTimeToValue = objDateTime
       }
 
-      this.$emit('update:date-time-to', date, time)
+      this.$emit(`update:${eventName}`, objDateTime)
     }
   }
 }

@@ -28,18 +28,14 @@
           </v-card-text>
           <v-container>
             <v-card-text>
-              <div
-                v-for="error in errors"
-                :key="error.message"
+              <v-alert
+                v-if="error"
+                dense
+                outlined
+                type="error"
               >
-                <v-alert
-                  dense
-                  outlined
-                  type="error"
-                >
-                  {{ error.message }}
-                </v-alert>
-              </div>
+                {{ error }}
+              </v-alert>
 
               <v-text-field
                 v-model="username"
@@ -72,7 +68,7 @@
                 color="primary"
                 type="submit"
                 x-large
-                :loading="loading"
+                :loading="isLoading"
               >
                 Login
               </v-btn>
@@ -89,8 +85,8 @@
 export default {
   name: 'LoginView',
   props: {
-    errors: Array,
-    loading: Boolean
+    error: String,
+    isLoading: Boolean
   },
   data: () => ({
     isValid: false,
@@ -126,9 +122,6 @@ export default {
 
       this.$emit('login', {username: this.username, password: this.password})
     }
-
-    // clear() {
-    // }
   }
 }
 </script>

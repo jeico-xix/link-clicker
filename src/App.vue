@@ -8,8 +8,8 @@
     />
     <v-main class="mx-4 mb-4">
       <router-view
-        :errors="errors"
-        :loading="loading"
+        :error="error"
+        :is-loading="is_loading"
         @login="login"
         @logout="is_logged_in = false"
       />
@@ -27,24 +27,21 @@ export default {
   },
   data() {
     return {
-      loading: false,
+      is_loading: false,
       is_logged_in: false,
-      errors: []
+      error: ''
     }
   },
 
   mounted() {
-    console.log(this.$store.state)
     this.is_logged_in = Boolean(localStorage.getItem('is_logged_in'));
   },
   
   methods: {
-    login(data) {
-      this.loading = true;
-      this.errors = []
-      this.$http.post('/admins/login', data).then(response => {
-        this.loading = false;
-
+    async login(data) {
+      try {
+        this.is_loading = true
+        const response = await this.$http.post('/admins/login', data);
         const token = response.data.token;
         localStorage.setItem('token', token)
 
@@ -52,21 +49,15 @@ export default {
         localStorage.setItem('is_logged_in', this.is_logged_in)
         
         this.$http.defaults.headers.common = { 'Authorization': `bearer ${token}` }
-
+        
         this.$store.commit('setAuthentication', true)
         this.$router.replace('/sites');
-      }).catch(error => {
-        this.loading = false;
-        if (error.code === 'ERR_NETWORK') {
-          this.errors.push({
-            'message': 'Something went wrong'
-          })
-        } else if (error.response) {
-          this.errors.push({
-            'message': error.response.data
-          })
-        }
-      });
+
+        this.is_loading = false
+      } catch (error) {
+        this.is_loading = false
+        this.error = error.response.data
+      }
     },
     
     logout() {
