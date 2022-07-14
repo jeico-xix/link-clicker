@@ -68,9 +68,8 @@
         <v-card-actions>
           <v-spacer />
           <v-btn
-            class="mt-3"
+            class="mt-1"
             color="primary"
-            text
             @click="confirm"
           >
             Confirm

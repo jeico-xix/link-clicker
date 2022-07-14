@@ -2,8 +2,6 @@
   <v-container class="my-5">
     <v-divider />
 
-    <!-- <base-tab :tabs="tabs" /> -->
-
     <base-toolbar
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
@@ -11,13 +9,15 @@
       :date-by="dateBy"
       :date-time-from="dateTimeFrom"
       :date-time-to="dateTimeTo"
+      :items="filters"
+      @update:filters="updateFilters"
       @update:filter-by="updateFilterBy"
       @update:date-by="updateDateBy"
       @update:date-time-from="updateDateTimeFrom"
       @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
-      @search="search"
-      @clear="clear"
+      @search="fetchData"
+      @clear="fetchData"
     >
       <template #search>
         <v-text-field
@@ -47,41 +47,31 @@
           <v-toolbar-title>Settings</v-toolbar-title>
           <v-spacer />
 
-          <v-dialog 
-            v-model="tagsDialog" 
-            max-width="800px"
+          <v-dialog
+            v-model="dialogToggleStatus"
+            max-width="500px"
           >
             <v-card>
-              <v-card-title>
-                <span class="text-h5">Tags</span>
+              <v-card-title class="text-h5">
+                Are you sure you want to update status for this item?
               </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <div class="pa-4">
-                    <v-chip
-                      v-for="tag in tags"
-                      :key="tag.id"
-                      class="ma-2"
-                      color="primary"
-                    >
-                      {{ tag.name }}
-                    </v-chip>
-                  </div>
-                </v-container>
-              </v-card-text>
-
               <v-card-actions>
                 <v-spacer />
                 <v-btn
                   text
-                  @click="closeTagsDialog"
+                  @click="dialogToggleStatus = false"
                 >
-                  <v-icon>
-                    mdi-close
-                  </v-icon>
-                  Close
+                  Cancel
                 </v-btn>
+                <v-btn
+                  color="primary"
+                  text
+                  :loading="isLoading"
+                  @click="updateItemStatusContirm"
+                >
+                  Confirm
+                </v-btn>
+                <v-spacer />
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -127,14 +117,14 @@
                     <v-row>
                       <v-col
                         cols="12"
-                        sm="4"
-                        md="4"
+                        sm="6"
+                        md="6"
                       >
                         <v-text-field
-                          v-model="editedItem.country"
+                          v-model="editedItem.name"
                           outlined
                           label="Country"
-                          :rules="countryRules"
+                          :rules="nameRules"
                           required
                           name="country"
                           autocomplete="off"
@@ -143,27 +133,15 @@
                       </v-col>
                       <v-col
                         cols="12"
-                        sm="4"
-                        md="4"
+                        sm="6"
+                        md="6"
                       >
                         <v-text-field
-                          v-model="editedItem.cca2"
+                          v-model="editedItem.code"
                           outlined
                           label="Alpha 2 Code"
                           :counter="2"
-                          :rules="cca2Rules"
-                          autocomplete="off"
-                        />
-                      </v-col>
-                      <v-col
-                        cols="12"
-                        sm="4"
-                        md="4"
-                      >
-                        <v-text-field
-                          v-model="editedItem.status"
-                          outlined
-                          label="Status"
+                          :rules="codeRules"
                           autocomplete="off"
                         />
                       </v-col>
@@ -269,29 +247,15 @@
 </template>
 
 <script>
-// import BaseTab from '../components/BaseTab'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
   name: 'SettingView',
   components: {
-    // BaseTab,
     BaseToolbar
   },
+
   data: () => ({
-    // tab: null,
-    // tabs: [
-    //   {
-    //     text: 'All',
-    //     is_active: true
-    //   },
-    //   {
-    //     'is_active': false,
-    //     'text': 'Deleted'
-    //   }
-    // ],
-    tagsLimit: 0,
-    tagsDialog: false,
     dialog: false,
     dialogDelete: false,
     headers: [
@@ -303,26 +267,26 @@ export default {
       { text: 'Actions', value: 'actions', sortable: false }
     ],
     settings: [],
-    tags: [],
+    dialogToggleStatus: false,
     isValid: false,
     isLoading: false,
-    countryRules: [
-      v => !!v || 'Country is required'
+    nameRules: [
+      v => !!v || 'Country Name is required'
     ],
-    cca2Rules: [
+    codeRules: [
       v => !!v || 'Alpha 2 Code is required',
       v => v.length <= 2 || 'Alpha 2 Code must be a maximum of 2 characters'
     ],
     error: '',
     editedIndex: -1,
     editedItem: {
-      country: '',
-      cca2: '',
+      name: '',
+      code: '',
       status: ''
     },
     defaultItem: {
-      country: '',
-      cca2: '',
+      name: '',
+      code: '',
       status: ''
     },
     filterByColumns: [
@@ -331,8 +295,8 @@ export default {
         value: 'name'
       },
       {
-        text: 'Alpha 2 Code',
-        value: 'cca2'
+        text: 'Code',
+        value: 'code'
       },
       {
         text: 'Status',
@@ -374,7 +338,8 @@ export default {
     },
     itemsPerPage: 5,
     currentPage: 1,
-    currentNumber: 1
+    currentNumber: 1,
+    filters: []
   }),
 
   computed: {
@@ -384,10 +349,6 @@ export default {
   },
 
   watch: {
-    tagsDialog(val) {
-      val || this.close()
-    },
-
     dialog(val) {
       if (val) {
         this.isValid = false
@@ -396,6 +357,7 @@ export default {
       }
       val || this.close()
     },
+
     dialogDelete(val) {
       val || this.closeDelete()
     }
@@ -417,7 +379,6 @@ export default {
     this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
 
     this.fetchData()
-    this.tagsLimit = 3;
     this.isValid = false
   },
 
@@ -429,17 +390,13 @@ export default {
 
       return 'red'
     },
-    
-    closeTagsDialog() {
-      this.tagsDialog = false
-    },
 
     updateFilterBy(filter) {
-      this.status = {
-        text:'All',
-        value: ''
-      }
-      this.query = ''
+      // this.status = {
+      //   text:'All',
+      //   value: ''
+      // }
+      // this.query = ''
 
       this.filterBy = filter
     },
@@ -465,16 +422,9 @@ export default {
     },
 
     toggleItemStatus(item) {
-      let status = 'disabled'
-      if (item.status === 'disabled') {
-        status = 'enabled'
-      }
-
-      item.status = status
+      this.editedItem = item;
       this.editedIndex = this.settings.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.isValid = true;
-      this.save()
+      this.dialogToggleStatus = true;
     },
 
     editItem(item) {
@@ -507,17 +457,25 @@ export default {
       })
     },
 
-    search() {
-      this.fetchData()
+    updateFilters(filters) {
+      this.filters = filters
     },
 
-    clear() {
-      this.fetchData()
+    updateItemStatusContirm() {
+      let status = 'disabled';
+      if (this.editedItem.status === 'disabled') {
+        status = 'enabled';
+      }
+
+      this.editedItem.status = status;
+      this.isValid = true;
+      this.save();
     },
 
     async fetchData() {
       try {
         this.isLoading = true;
+        
         const response = await this.$http.get('/countries', {
           params: this.$route.query
         });
@@ -535,17 +493,23 @@ export default {
         return;
       }
 
+      this.isValid = false;
+
       const isUpdate = this.editedIndex > -1
       const item = { ...this.editedItem }
+
       if (isUpdate) {
         delete item['id'];
         delete item['created_at'];
-        delete item['tags'];
 
         try {
           this.isLoading = true;
 
           await this.$http.patch(`/countries/${this.editedItem.id}`, item)
+
+          if (this.dialogToggleStatus) {
+            this.dialogToggleStatus = false;
+          }
 
           this.close()
 

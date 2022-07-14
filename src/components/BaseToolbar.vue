@@ -99,39 +99,29 @@ export default {
   },
 
   created() {
-    const query = this.$route.query;
+    const filterBy = this.$route.query.filter_by;
+    if (!filterBy) {
+      return;
+    }
 
-    const filterBy = query.filter_by;
-    if (!filterBy || filterBy.length === 0) {
-      console.log(this.filters)
+    const q = this.$route.query.q;
 
-      // if (this.filters.push({
-
-      // }));
+    this.filters = []
+    if (!Array.isArray(filterBy)) {
+      this.filters.push({
+        filter_by: filterBy,
+        'q': q
+      })
 
       return;
     }
 
-    const q = query.q;
-
-    if (Array.isArray(filterBy)) {
-      const arrFilterBy = filterBy; 
-      const queryValues = q;
-
-      arrFilterBy.forEach(filter_by => {   
-        this.filters.push({
-          index: this.filters.length + 1,
-          filter_by: filter_by,
-          q: queryValues[this.filters.length]
-        })
-      });
-    } else {
+    filterBy.forEach((item, index) => {
       this.filters.push({
-        index: this.filters.length + 1,
-        filter_by: filterBy,
-        q: q
-      });
-    }
+        'filter_by': item,
+        'q': q[index]
+      })
+    });
 
     this.$emit('update:filters', this.filters)
   },
@@ -182,17 +172,8 @@ export default {
 
       const query = {}
       if (filterBy.length === 1) {
-        console.log(filterBy)
-
         query.filter_by = filterBy[0];
         query.q = q[0];
-      } else {
-        // filterBy.forEach(filter => {
-        //   if (filter.filter_by) {
-        //     filterBy.push(filter.filter_by);
-        //     q.push(filter.q);
-        //   }
-        // });
       }
 
       if (filterBy.length > 0) {
@@ -216,20 +197,18 @@ export default {
     },
 
     clear() {
-      this.filters = [{}]
+      this.filters = [];
+      if (!_.isEqual(this.$route.query, {})) {
+        this.$router.push({ query: {} })
+      }
 
-      // this.filters.forEach((filter, index) => {
-      //   const a = Object.assign({}, filter)
-      //   console.log(a)
-      //   this.filters.splice(index, this.filters.length)
-      // });
+      this.filters.push({})
 
-      // this.filters.push(this.defaultFilter);
-      // this.$emit('clear');
+      this.$emit('clear');
     },
 
     updateDateTime(eventName, e) {
-      this.$emit(`update:${eventName}`, e)
+      this.$emit(`update:${eventName}`, e);
     }
   }
 }

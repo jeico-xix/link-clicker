@@ -2,8 +2,6 @@
   <v-container class="my-5">
     <v-divider />
 
-    <!-- <base-tab :tabs="tabs" /> -->
-
     <base-toolbar
       :filter-by-columns="filterByColumns"
       :date-by-columns="dateByColumns"
@@ -11,13 +9,15 @@
       :date-by="dateBy"
       :date-time-from="dateTimeFrom"
       :date-time-to="dateTimeTo"
+      :items="filters"
+      @update:filters="updateFilters"
       @update:filter-by="updateFilterBy"
-      @update:date-by="updateDateBy"
+      @update:filter-date-by="updateFilterDateBy"
       @update:date-time-from="updateDateTimeFrom"
       @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
-      @search="search"
-      @clear="clear"
+      @search="fetchData"
+      @clear="fetchData"
     >
       <template #search>
         <v-text-field
@@ -315,28 +315,15 @@
 </template>
 
 <script>
-// import BaseTab from '../components/BaseTab'
-import _ from 'lodash';
 import BaseToolbar from '../components/BaseToolbar';
 
 export default {
   name: 'SiteView',
   components: {
-    // BaseTab,
     BaseToolbar
   },
+
   data: () => ({
-    // tab: null,
-    // tabs: [
-    //   {
-    //     text: 'All',
-    //     is_active: true
-    //   },
-    //   {
-    //     'is_active': false,
-    //     'text': 'Deleted'
-    //   }
-    // ],
     tagsLimit: 0,
     tagsDialog: false,
     dialog: false,
@@ -425,7 +412,8 @@ export default {
     },
     itemsPerPage: 5,
     currentPage: 1,
-    currentNumber: 1
+    currentNumber: 1,
+    filters: []
   }),
 
   computed: {
@@ -473,10 +461,6 @@ export default {
   },
 
   methods: {
-    // tabChange(e) {
-    //   console.log(e)
-    // },
-
     showMoreTags(tags) {
       this.tags = tags
       this.tagsDialog = true
@@ -488,16 +472,10 @@ export default {
     },
 
     updateFilterBy(filter) {
-      this.status = {
-        text:'All',
-        value: ''
-      }
-      this.query = ''
-
       this.filterBy = filter
     },
 
-    updateDateBy(dateBy) {
+    updateFilterDateBy(dateBy) {
       this.dateBy = dateBy;
     },
 
@@ -516,26 +494,9 @@ export default {
         value: `${dateTime}:00`
       }
     },
-
-    search() {
-      const query = {}
-      if (this.filterBy.value !== '') {
-        query.filter_by = this.filterBy.value
-      }
-
-      query.q = this.query
-
-      if (!_.isEqual(this.$route.query, query)) {
-        this.$router.push({ 
-          query: query 
-        })
-      }
-
-      this.fetchData()
-    },
-
-    clear() {
-      this.fetchData()
+    
+    updateFilters(filters) {
+      this.filters = filters
     },
 
     editItem(item) {
@@ -572,6 +533,8 @@ export default {
       try {
         this.isLoading = true;
         
+        console.log(this.$route.query);
+
         const response = await this.$http.get('/sites', {
           params: this.$route.query
         });

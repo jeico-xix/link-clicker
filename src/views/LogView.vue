@@ -1,7 +1,6 @@
 <template>
   <v-container class="my-5">
     <v-divider />
-    <!-- <base-tab :tabs="tabs" /> -->
 
     <base-toolbar
       :filter-by-columns="filterByColumns"
@@ -17,8 +16,8 @@
       @update:date-time-from="updateDateTimeFrom"
       @update:date-time-to="updateDateTimeTo"
       @refresh="fetchData"
-      @search="search"
-      @clear="clear"
+      @search="fetchData"
+      @clear="fetchData"
     />
 
     <v-data-table
@@ -57,28 +56,14 @@
 import {
   logs as LogsSocket
 } from '@/config/manager'
-// import _ from 'lodash'
-// import BaseTab from '../components/BaseTab'
 import BaseToolbar from '../components/BaseToolbar'
 
 export default {
   name: 'LogView',
   components: {
-    // BaseTab,
     BaseToolbar
   },
   data: () => ({
-    // search: '',
-    // tabs: [
-    //   {
-    //     'text': 'All',
-    //     'is_active': true
-    //   },
-    //   {
-    //     'is_active': false,
-    //     'text': 'Deleted'
-    //   }
-    // ],
     isLoading: false,
     headers: [
       { text: '#', value: 'number' },
@@ -148,48 +133,6 @@ export default {
     filters: []
   }),
 
-  created() {
-    // if (this.$route.query.q) {
-    //   this.query = this.$route.query.q
-    // }
-
-    // this.filterByColumns.forEach(filterBy => {
-    //   if (this.$route.query.filter_by && this.$route.query.filter_by === filterBy.value) {
-    //     this.filterBy = filterBy
-
-    //     if (this.filterBy.value === 'status') {
-    //       this.statuses.forEach(status => {
-    //         if (this.$route.query.q === status.value) {
-    //           this.status = status
-    //         }
-    //       });
-    //     }
-    //   }
-    // });
-
-    // this.dateByColumns.forEach(dateBy => {
-    //   if (this.$route.query.date_by && this.$route.query.date_by === dateBy.value) {
-    //     this.dateBy = dateBy
-    //   }
-    // });
-
-    // if (this.$route.query.date_from) {
-    //   const dateTimeFrom = this.$route.query.date_from
-    //   this.dateTimeFrom = {
-    //     text: dateTimeFrom,
-    //     value: dateTimeFrom
-    //   }
-    // }
-
-    // if (this.$route.query.date_to) {
-    //   const dateTimeTo = this.$route.query.date_to
-    //   this.dateTimeTo = {
-    //     text: dateTimeTo,
-    //     value: dateTimeTo
-    //   }
-    // }
-  },
-
   mounted() {
     this.currentNumber = this.itemsPerPage * (this.currentPage - 1)
     this.fetchData()
@@ -213,24 +156,12 @@ export default {
     },
 
     updateFilterBy(filter) {
-      // this.status = {
-      //   text:'All',
-      //   value: ''
-      // }
-      // this.query = ''
-      console.log(filter)
-
-      // this.filterBy = filter
+      this.filterBy = filter
     },
 
     updateFilterDateBy(dateBy) {
       this.dateBy = dateBy;
     },
-
-    // updateStatus(status) {
-    //   this.status = status
-    //   this.query = status.value
-    // },
 
     updateDateTimeFrom(e) {
       this.dateTimeFrom = e
@@ -249,16 +180,8 @@ export default {
       this.itemsPerPage = number
     },
 
-    clear() {
-      this.fetchData()
-    },
-
     updateFilters(filters) {
       this.filters = filters
-    },
-
-    search() {
-      this.fetchData()
     },
     
     async fetchData() {

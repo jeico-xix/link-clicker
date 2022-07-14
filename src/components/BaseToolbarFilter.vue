@@ -2,7 +2,6 @@
   <div 
     class="mt-1 mr-2"
   >
-    <slot></slot>
     <base-toolbar-filter-menu
       small
       :items="items"
@@ -44,7 +43,7 @@
       dense
       single-line
       class="shrink"
-      :value="q"
+      :value="query"
       @input="changeValue($event, index)"
     />
 
@@ -76,11 +75,11 @@ export default {
   data() {
     return {
       filter: this.value,
+      query: '',
       status: {
         text: 'All',
         value: ''
       },
-      q: '',
       statuses: [
         {
           text: 'All',
@@ -135,19 +134,19 @@ export default {
   methods: {
     changeFilter(item, index) {
       this.filter = item;
-      this.filter.q = this.q;
+      this.filter.q = this.query;
       this.$emit('update:filter', this.filter, index)
     },
 
     changeValue(e, index) {
-      this.q = e;
-      this.filter.q = this.q;
+      this.query = e;
+      this.filter.q = this.query;
       this.$emit('update:filter', this.filter, index)
     },
 
     changeStatus(status, index) {
-      this.q = status.value;
-      this.filter.q = this.q;
+      this.query = status.value;
+      this.filter.q = this.query;
       this.$emit('update:filter', this.filter, index)
     }
   }
