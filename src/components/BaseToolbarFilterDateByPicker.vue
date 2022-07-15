@@ -11,6 +11,7 @@
       <template #activator="{ on, attrs }">
         <v-btn
           v-bind="attrs"
+          elevation="0"
           v-on="on"
         >
           {{ dateTime.text }}

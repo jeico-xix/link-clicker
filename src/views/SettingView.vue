@@ -218,9 +218,9 @@
           </v-chip>
         </div>
       </template>
-      <template #[`item.number`]="{index}">
+      <!-- <template #[`item.number`]="{index}">
         {{ index + 1 }}
-      </template>
+      </template> -->
       <template #[`item.actions`]="{ item }">
         <v-icon
           small
@@ -260,7 +260,7 @@ export default {
     dialog: false,
     dialogDelete: false,
     headers: [
-      { text: '#', value: 'number' },
+      { text: '#', value: 'index' },
       { text: 'Country', value: 'name' },
       { text: 'Code', value: 'code' },
       { text: 'Status', value: 'status' },
@@ -482,6 +482,13 @@ export default {
         });
 
         this.settings = response.data.list;
+
+        let i = 0;
+        this.settings.map(setting => {
+          i++
+          return setting.index = i
+        })
+        
         this.isLoading = false;
       } catch (error) {
         this.isLoading = false;

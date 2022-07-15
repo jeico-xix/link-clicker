@@ -10,6 +10,7 @@
         <v-btn
           class="mb-1"
           v-bind="{...attrs, ...$attrs}"
+          elevation="0"
           v-on="on"
         >
           {{ selectedItem.text }}

@@ -29,6 +29,11 @@
       @update:date-time-to="updateDateTime('date-time-to', $event)"
     />
 
+    <v-divider
+      vertical
+      class="mr-2"
+    />
+    
     <v-btn
       icon
       class="mr-2" 

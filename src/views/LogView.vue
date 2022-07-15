@@ -35,9 +35,9 @@
           <v-toolbar-title>Logs</v-toolbar-title>
         </v-toolbar>
       </template>
-      <template #[`item.number`]="{ index }">
+      <!-- <template #[`item.number`]="{ index }">
         {{ currentNumber + (index + 1) }}
-      </template>
+      </template> -->
       <template #[`item.status`]="{ item }">
         <v-chip
           small
@@ -66,7 +66,7 @@ export default {
   data: () => ({
     isLoading: false,
     headers: [
-      { text: '#', value: 'number' },
+      { text: '#', value: 'index' },
       { text: 'Site Name', value: 'sites.name' },
       { text: 'Tag', value: 'tags.name' },
       { text: 'Status', value: 'status' },
@@ -213,6 +213,12 @@ export default {
         this.isLoading = false;
 
         this.logs = response.data.list;
+
+        let i = 0;
+        this.logs.map(log => {
+          i++
+          return log.index = i
+        })
       } catch (error) {
         this.isLoading = false;
         this.error = error.response.data

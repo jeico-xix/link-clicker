@@ -291,9 +291,9 @@
         </div>
       </template>
 
-      <template #[`item.number`]="{index}">
+      <!-- <template #[`item.number`]="{index}">
         {{ index + 1 }}
-      </template>
+      </template> -->
 
       <template #[`item.actions`]="{ item }">
         <v-icon
@@ -329,7 +329,7 @@ export default {
     dialog: false,
     dialogDelete: false,
     headers: [
-      { text: '#', value: 'number' },
+      { text: '#', value: 'index' },
       { text: 'Name', value: 'name' },
       { text: 'URL', value: 'url' },
       { text: 'API', value: 'api' },
@@ -542,6 +542,11 @@ export default {
         this.isLoading = false;
 
         this.sites = response.data.list;
+        let i = 0;
+        this.sites.map(site => {
+          i++
+          return site.index = i
+        })
       } catch (error) {
         this.isLoading = false;
         this.error = error.response.data
