@@ -139,7 +139,7 @@
                         <v-text-field
                           v-model="editedItem.code"
                           outlined
-                          label="Alpha 2 Code"
+                          label="Code"
                           :counter="2"
                           :rules="codeRules"
                           autocomplete="off"
@@ -212,6 +212,7 @@
           <v-chip
             small
             :class="getStatusClass(item.status)"
+            text-color="white"
           >
             {{ item.status.toUpperCase() }}
           </v-chip>
@@ -261,7 +262,7 @@ export default {
     headers: [
       { text: '#', value: 'number' },
       { text: 'Country', value: 'name' },
-      { text: 'Alpha 2 Code', value: 'code' },
+      { text: 'Code', value: 'code' },
       { text: 'Status', value: 'status' },
       { text: 'Created At', value: 'created_at' },
       { text: 'Actions', value: 'actions', sortable: false }
@@ -274,8 +275,8 @@ export default {
       v => !!v || 'Country Name is required'
     ],
     codeRules: [
-      v => !!v || 'Alpha 2 Code is required',
-      v => v.length <= 2 || 'Alpha 2 Code must be a maximum of 2 characters'
+      v => !!v || 'Code is required',
+      v => v.length <= 2 || 'Code must be a maximum of 2 characters'
     ],
     error: '',
     editedIndex: -1,
@@ -398,7 +399,7 @@ export default {
       // }
       // this.query = ''
 
-      this.filterBy = filter
+      this.filterBy = filter;
     },
 
     updateDateBy(dateBy) {
@@ -406,7 +407,7 @@ export default {
     },
 
     updateDateTimeFrom(date, time) {
-      const dateTime = `${date} ${time}` 
+      const dateTime = `${date} ${time}`;
       this.dateTimeFrom = {
         text: dateTime,
         value: `${dateTime}:00`
@@ -414,7 +415,7 @@ export default {
     },
 
     updateDateTimeTo(date, time) {
-      const dateTime = `${date} ${time}` 
+      const dateTime = `${date} ${time}`;
       this.dateTimeTo = {
         text: dateTime,
         value: `${dateTime}:00`
@@ -423,20 +424,20 @@ export default {
 
     toggleItemStatus(item) {
       this.editedItem = item;
-      this.editedIndex = this.settings.indexOf(item)
+      this.editedIndex = this.settings.indexOf(item);
       this.dialogToggleStatus = true;
     },
 
     editItem(item) {
-      this.editedIndex = this.settings.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialog = true
+      this.editedIndex = this.settings.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.settings.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialogDelete = true
+      this.editedIndex = this.settings.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialogDelete = true;
     },
 
     close() {
@@ -444,21 +445,21 @@ export default {
       this.isValid = false;
       this.dialog = false;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
       })
     },
 
     closeDelete() {
       this.dialogDelete = false
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
       })
     },
 
     updateFilters(filters) {
-      this.filters = filters
+      this.filters = filters;
     },
 
     updateItemStatusContirm() {

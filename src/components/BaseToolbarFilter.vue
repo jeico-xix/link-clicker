@@ -58,7 +58,8 @@
 </template>
 
 <script>
-import BaseToolbarFilterMenu from './BaseToolbarFilterMenu.vue'
+import _ from 'lodash';
+import BaseToolbarFilterMenu from './BaseToolbarFilterMenu.vue';
 
 export default {
   components: {
@@ -80,24 +81,7 @@ export default {
         text: 'All',
         value: ''
       },
-      statuses: [
-        {
-          text: 'All',
-          value: ''
-        },
-        {
-          text: 'On-Going',
-          value: 'on-going'
-        },
-        {
-          text: 'Success',
-          value: 'success'
-        },
-        {
-          text: 'Failed',
-          value: 'failed'
-        }
-      ]
+      statuses: []
     }
   },
 
@@ -118,7 +102,9 @@ export default {
         this.filter.q = q
 
         if (this.filter.value === 'status') {
-          this.status = this.$_.find(this.statuses, {value: this.filter.q});
+          this.statuses = this.filter.items;
+
+          this.status = _.find(this.statuses, {value: this.filter.q});
           if (!this.status) {
             this.status = {
               text: 'All',
@@ -127,14 +113,20 @@ export default {
           }
         }
       }
-      return;
     });
   },
 
   methods: {
     changeFilter(item, index) {
       this.filter = item;
-      this.filter.q = this.query;
+
+      if (this.filter.value === 'status') {
+        this.statuses = this.filter.items
+      }
+
+      this.query = ''
+      this.filter.q = ''
+
       this.$emit('update:filter', this.filter, index)
     },
 

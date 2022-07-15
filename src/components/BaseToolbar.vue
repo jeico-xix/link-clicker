@@ -146,7 +146,7 @@ export default {
 
     removeFilter(index) {
       this.filters.splice(index, 1);
-      this.$emit('update:filters', this.filters)
+      this.$emit('update:filters', this.filters);
     },
 
     search() {

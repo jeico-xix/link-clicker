@@ -90,7 +90,25 @@ export default {
       },
       {
         text: 'Status',
-        value: 'status'
+        value: 'status',
+        items: [
+          {
+            text: 'All',
+            value: ''
+          },
+          {
+            text: 'On-Going',
+            value: 'on-going'
+          },
+          {
+            text: 'Success',
+            value: 'success'
+          },
+          {
+            text: 'Failed',
+            value: 'failed'
+          }
+        ]
       },
       {
         text: 'IP',
@@ -183,7 +201,7 @@ export default {
     updateFilters(filters) {
       this.filters = filters
     },
-    
+
     async fetchData() {
       try {
         this.isLoading = true;
