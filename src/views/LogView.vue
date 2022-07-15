@@ -90,6 +90,10 @@ export default {
         value: 'tag_name'
       },
       {
+        text: 'Term',
+        value: 'log_term'
+      },
+      {
         text: 'Status',
         value: 'status',
         items: [
