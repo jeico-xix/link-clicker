@@ -69,6 +69,7 @@ export default {
       { text: '#', value: 'index' },
       { text: 'Site Name', value: 'sites.name' },
       { text: 'Tag', value: 'tags.name' },
+      { text: 'Term', value: 'term' },
       { text: 'Status', value: 'status' },
       { text: 'Country', value: 'country.name' },
       { text: 'IP', value: 'ip' },
