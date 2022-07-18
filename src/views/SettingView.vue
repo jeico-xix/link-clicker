@@ -519,6 +519,7 @@ export default {
       const item = { ...this.editedItem }
 
       if (isUpdate) {
+        delete item['index'];
         delete item['id'];
         delete item['created_at'];
 
