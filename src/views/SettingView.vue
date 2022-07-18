@@ -58,17 +58,23 @@
               <v-card-actions>
                 <v-spacer />
                 <v-btn
-                  text
+                  elevation="0"
                   @click="dialogToggleStatus = false"
                 >
+                  <v-icon>
+                    mdi-close
+                  </v-icon>
                   Cancel
                 </v-btn>
                 <v-btn
+                  elevation="0"
                   color="primary"
-                  text
                   :loading="isLoading"
                   @click="updateItemStatusContirm"
                 >
+                  <v-icon>
+                    mdi-check
+                  </v-icon>
                   Confirm
                 </v-btn>
                 <v-spacer />
@@ -83,6 +89,7 @@
           >
             <template #activator="{ on, attrs }">
               <v-btn
+                elevation="0"
                 color="primary"
                 dark
                 class="mb-2"
@@ -152,7 +159,7 @@
                 <v-card-actions>
                   <v-spacer />
                   <v-btn
-                    text
+                    elevation="0"
                     @click="close"
                   >
                     <v-icon>
@@ -161,8 +168,8 @@
                     Cancel
                   </v-btn>
                   <v-btn
+                    elevation="0"
                     color="primary"
-                    text
                     :disabled="!isValid"
                     type="submit"
                     :loading="isLoading"
@@ -188,17 +195,22 @@
               <v-card-actions>
                 <v-spacer />
                 <v-btn
-                  text
+                  elevation="0"
                   @click="closeDelete"
                 >
+                  <v-icon>
+                    mdi-close
+                  </v-icon>
                   Cancel
                 </v-btn>
                 <v-btn
-                  color="red darken-1"
-                  text
+                  color="red darken-1 white--text"
                   :loading="isLoading"
                   @click="deleteItemConfirm"
                 >
+                  <v-icon>
+                    mdi-check
+                  </v-icon>
                   Confirm
                 </v-btn>
                 <v-spacer />

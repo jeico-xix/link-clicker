@@ -50,7 +50,9 @@
           
           <v-dialog 
             v-model="tagsDialog" 
-            max-width="800px"
+            max-width="600px"
+            style="max-height: 300px;"
+            scrollable
           >
             <v-card>
               <v-card-title>
@@ -59,23 +61,22 @@
 
               <v-card-text>
                 <v-container>
-                  <div class="pa-4">
-                    <v-chip
-                      v-for="tag in tags"
-                      :key="tag.id"
-                      class="ma-2"
-                      color="primary"
-                    >
-                      {{ tag.name }}
-                    </v-chip>
-                  </div>
+                  <v-chip
+                    v-for="tag in tags"
+                    :key="tag.id"
+                    class="ma-2"
+                    :color="tag.is_active ? 'primary' : null"
+                    @click="toggleTagStatus(tag)"
+                  >
+                    {{ tag.name }}
+                  </v-chip>
                 </v-container>
               </v-card-text>
 
               <v-card-actions>
                 <v-spacer />
                 <v-btn
-                  text
+                  elevation="0"
                   @click="closeTagsDialog"
                 >
                   <v-icon>
@@ -88,11 +89,12 @@
           </v-dialog>
           <v-dialog 
             v-model="dialog" 
-            max-width="600px"
+            max-width="400px"
             persistent
           >
             <template #activator="{ on, attrs }">
               <v-btn
+                elevation="0"
                 color="primary"
                 dark
                 class="mb-2"
@@ -171,34 +173,36 @@
                     <v-row>
                       <v-col
                         cols="12"
-                        sm="4"
-                        md="4"
+                        sm="6"
+                        md="6"
                       >
                         <v-text-field
                           v-model.number="editedItem.settings.start"
                           outlined
                           type="number"
-                          label="Start"
+                          label="Start Time"
                           oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
                       <v-col
                         cols="12"
-                        sm="4"
-                        md="4"
+                        sm="6"
+                        md="6"
                       >
                         <v-text-field
                           v-model.number="editedItem.settings.end"
                           outlined
                           type="number"
-                          label="End"
+                          label="End Time"
                           oninput="if(this.value < 1) this.value = 1;"
                         />
                       </v-col>
+                    </v-row>
+                    <v-row>
                       <v-col
                         cols="12"
-                        sm="4"
-                        md="4"
+                        sm="12"
+                        md="12"
                       >
                         <v-text-field
                           v-model.number="editedItem.settings.page_limit"
@@ -215,7 +219,7 @@
                 <v-card-actions>
                   <v-spacer />
                   <v-btn
-                    text
+                    elevation="0"
                     @click="close"
                   >
                     <v-icon>
@@ -224,8 +228,8 @@
                     Cancel
                   </v-btn>
                   <v-btn
+                    elevation="0"
                     color="primary"
-                    text
                     :disabled="!isValid"
                     type="submit"
                     :loading="isSaving"
@@ -250,16 +254,22 @@
               <v-card-actions>
                 <v-spacer />
                 <v-btn
-                  text
+                  elevation="0"
                   @click="closeDelete"
                 >
+                  <v-icon>
+                    mdi-close
+                  </v-icon>
                   Cancel
                 </v-btn>
                 <v-btn
-                  color="red darken-1"
-                  text
+                  elevation="0"
+                  color="red darken-1 white--text"
                   @click="deleteItemConfirm"
                 >
+                  <v-icon>
+                    mdi-check
+                  </v-icon>
                   Confirm
                 </v-btn>
                 <v-spacer />
@@ -275,7 +285,7 @@
             v-for="tag in item.tags.slice(0, tagsLimit)"
             :key="tag.id"
             class="ma-2"
-            color="primary"
+            :color="tag.is_active === 1 ? 'primary' : null"
             small
           >
             {{ tag.name }}
@@ -413,7 +423,8 @@ export default {
     itemsPerPage: 5,
     currentPage: 1,
     currentNumber: 1,
-    filters: []
+    filters: [],
+    selectedTag: null
   }),
 
   computed: {
@@ -464,7 +475,6 @@ export default {
     showMoreTags(tags) {
       this.tags = tags
       this.tagsDialog = true
-      
     },
 
     closeTagsDialog() {
@@ -600,6 +610,25 @@ export default {
         this.isLoading = true;
         await this.$http.delete(`/sites/${this.editedItem.id}`);
         this.closeDelete()
+        this.fetchData()
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error.response.data
+      }
+    },
+
+    async toggleTagStatus(tag) {
+      this.selectedTag = tag
+    
+      try {
+        const is_active = !this.selectedTag.is_active;
+
+        await this.$http.patch(`/tags/${this.selectedTag.id}`, {
+          is_active: is_active
+        })
+
+        this.selectedTag.is_active = is_active
+        
         this.fetchData()
       } catch (error) {
         this.isLoading = false;

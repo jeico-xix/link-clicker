@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import router from '../router'
 
 Axios.defaults.baseURL = process.env.VUE_APP_API_URL;
 const token = localStorage.getItem('token')
@@ -18,9 +19,9 @@ Axios.interceptors.response.use(function (response) {
     localStorage.clear();
     localStorage.setItem(key, isDarkMode);
 
-    // if (!_.isEqual(router)) {
-    //   router.replace('/login');
-    // }
+    router.push('/login').catch(err => {
+      console.log(err)
+    })
   }
   return Promise.reject(error);
 });
