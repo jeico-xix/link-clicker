@@ -48,6 +48,16 @@
           {{ (item.status) ? item.status.toUpperCase() : item.status }}
         </v-chip>
       </template>
+      <template #[`item.action`]="{ item }">
+        <v-btn
+          small
+          elevation="0"
+          class="primary"
+          :to="{ name: 'summary', query: { site_tag_id: item.site_tag.id }}"
+        >
+          View Summary
+        </v-btn>
+      </template>
     </v-data-table>
   </v-container>
 </template>
@@ -77,7 +87,8 @@ export default {
       { text: 'Started At', value: 'started_at' },
       { text: 'Finished At', value: 'finished_at' },
       { text: 'Duration', value: 'duration' },
-      { text: 'Created At', value: 'created_at' }
+      { text: 'Created At', value: 'created_at' },
+      { text: 'Action', value: 'action' }
     ],
     logs: [],
     filterByColumns: [
