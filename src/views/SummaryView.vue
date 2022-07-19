@@ -127,7 +127,7 @@ export default {
             labels: (!daily.labels) ? [] : daily.labels,
             datasets: [
               {
-                label: 'Daily',
+                label: 'Page',
                 backgroundColor: '#ce9440',
                 data: (!daily.data) ? [] : daily.data
               }
@@ -141,7 +141,7 @@ export default {
             labels: weekly.labels,
             datasets: [
               {
-                label: 'Weekly',
+                label: 'Page',
                 backgroundColor: '#ce9440',
                 data: weekly.data
               }
@@ -155,7 +155,7 @@ export default {
             labels: monthly.labels,
             datasets: [
               {
-                label: 'Monthly',
+                label: 'Page',
                 backgroundColor: '#ce9440',
                 data: monthly.data
               }
