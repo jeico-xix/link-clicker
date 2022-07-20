@@ -51,10 +51,9 @@
           <v-dialog 
             v-model="tagsDialog" 
             max-width="600px"
-            style="max-height: 300px;"
             scrollable
           >
-            <v-card>
+            <v-card height="50vh">
               <v-card-title>
                 <span class="text-h5">Tags</span>
               </v-card-title>
@@ -284,7 +283,7 @@
           <v-chip
             v-for="tag in item.tags.slice(0, tagsLimit)"
             :key="tag.id"
-            class="ma-2"
+            class="mx-1"
             :color="tag.is_active === 1 ? 'primary' : null"
             small
           >
@@ -293,7 +292,7 @@
           <v-chip
             v-if="item.tags.length > tagsLimit"
             small
-            class="ma-2"
+            class="ml-1"
             @click="showMoreTags(item.tags)"
           >
             Show All
