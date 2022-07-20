@@ -34,11 +34,12 @@
               v-model="datePicker"
               flat
               no-title
-              elevation="15"
+              elevation="1"
               color="primary"
             />
 
             <v-card
+              elevation="0"
               class="ml-2 mr-1"
               tile
               max-height="290px"
