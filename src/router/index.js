@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import LoginView from '../views/LoginView'
 import SiteView from '../views/SiteView'
 import LogView from '../views/LogView'
+import SummaryView from '../views/SummaryView'
 import SettingView from '../views/SettingView'
 
 Vue.use(VueRouter)
@@ -36,6 +37,14 @@ const routes = [
     path: '/logs',
     name: 'logs',
     component: LogView,
+    meta: {
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/summary',
+    name: 'summary',
+    component: SummaryView,
     meta: {
       requiresAuth: false
     }

@@ -42,6 +42,7 @@ export default {
       try {
         this.is_loading = true
         const response = await this.$http.post('/admins/login', data);
+        this.error = ''
         const token = response.data.token;
         localStorage.setItem('token', token)
 

@@ -47,19 +47,12 @@
           {{ (item.status) ? item.status.toUpperCase() : item.status }}
         </v-chip>
       </template>
-
       <template #[`item.action`]="{ item }">
         <v-btn
-          elevation="0"
           small
+          elevation="0"
           class="primary"
-          :to="{
-            name: 'summary', 
-            query: {
-              filter_by: 'site_tag_id', 
-              q: item.site_tag.id
-            }
-          }"
+          :to="{ name: 'summary', query: { site_tag_id: item.site_tag.id }}"
         >
           View Summary
         </v-btn>
