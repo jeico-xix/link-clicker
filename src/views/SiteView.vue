@@ -283,7 +283,7 @@
           <v-chip
             v-for="tag in item.tags.slice(0, tagsLimit)"
             :key="tag.id"
-            class="mx-1"
+            class="mx-1 my-1"
             :color="tag.is_active === 1 ? 'primary' : null"
             small
           >
